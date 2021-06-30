@@ -3,10 +3,12 @@ extern crate rand;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
+// #[derive(Copy, Clone)]
 pub struct Card {
     pub upper_val: u8,
     pub lower_val: u8,  // only relevant for ace
     pub name: String,
+    pub suite: String,
     id: u8
 }
 
@@ -62,7 +64,7 @@ impl Deck {
                     }
 
                 }
-                my_cards.push(Card{upper_val: up, lower_val: low, name: new_name, id: counter});
+                my_cards.push(Card{upper_val: up, lower_val: low, name: new_name, id: counter, suite: suite.to_string()});
                 counter += 1;
             }
         }  
@@ -71,9 +73,27 @@ impl Deck {
         Deck {cards: my_cards, current_idx: 0}  
     }
 
-    pub fn draw(&mut self) -> &Card {
+    pub fn draw(&mut self) -> Card {
         let c: &Card = &self.cards[self.current_idx];
         self.current_idx += 1;
-        &c
+        if self.current_idx >= 52 {
+            println!("resetting the deck");
+            self.current_idx = 0;
+        }
+        let copied_card = Card{upper_val: c.upper_val, lower_val: c.lower_val, name: c.name.clone(), id: c.id, suite: c.suite.clone()}; // TODO better way to copy? or move?
+        copied_card
+    }
+}
+
+pub struct User {
+    pub status: i32, // 0 tie, -1 folded, 1 won
+    pub bet: i32,
+    pub money: i32,
+    pub cards: Vec<Card>
+}
+
+impl User {
+    pub fn new() -> User {
+        User{status: 0, bet: 0, money: 100, cards: Vec::new()}
     }
 }
