@@ -88,5 +88,5 @@ fn deal_hands(mut players: Vec<User>, mut deck: Deck) -> Vec<User> {
 }
 
 fn show_dealer_hand(dealer: &User, round_done: bool) {
-
+    let asdf = 5.0;
 }
