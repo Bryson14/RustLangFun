@@ -59,7 +59,7 @@ fn get_bets(mut players: Vec<User>) -> Vec<User>{
 
             match bet {
                 0 => {
-                    println!("Player Quits");
+                    println!("Player {} Quits", i+1);
                     break;
                 },
                 b if b > players[i].money=> {
@@ -89,4 +89,26 @@ fn deal_hands(mut players: Vec<User>, mut deck: Deck) -> Vec<User> {
 
 fn show_dealer_hand(dealer: &User, round_done: bool) {
     let asdf = 5.0;
+}
+
+fn show_player_hand() {
+
+}
+
+fn player_turn(player_idx: i32, mut players: Vec<User>) {
+    loop{
+        show_player_hand();
+        if players[player_idx as usize].status != -1 {
+            let res = get_int_input(String::from("Player {}: Hit (1) or Hold (2)? "));
+            if res == 1 {
+                //hit
+            } else if res == 2 {
+                println!("Player {} Holds\n <<====>>", player_idx+1);
+                break;
+            }
+        } else {
+            println!("Player {} busted...", player_idx+1);
+            break;
+        }
+    }
 }
