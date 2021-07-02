@@ -21,17 +21,26 @@ fn main() {
         players = deal_hands(players, d);
         println!("Cards of player 1 {}, {}", players[0].cards[0], players[0].cards[1]);
         show_dealer_hand(&players[players.len()-1], false);
-        // for i in 0..num_players {
-        //     if 
-        // }
-        // for i in range(self.numPlayers):
-        //         if self.stats[i]["bet"]>0: # so only active players play
-        //             self.playerTurn(i)
+        for i in 0..num_players {
+            if players[i as usize].bet > 0 {
+                players = player_turn(i as usize, players);
+            }
+        }
+        // self.dealerTurn()
+        // self.determineWinners()
+        // self.payouts()
+        // self.showResults()
+        if get_int_input(String::from("Play Again? Yes (1) / No (9)")) != 1 {
+            println!("Thanks for playing!");
+            break;
+        }
+            
+        
 
         println!("Breaking");
         break;
     }
-    
+    // self.showResults()
 }
 
 fn get_int_input(message: String) -> i32 {
@@ -95,20 +104,32 @@ fn show_player_hand() {
 
 }
 
-fn player_turn(player_idx: i32, mut players: Vec<User>) {
+fn player_turn(player_idx: usize, mut players: Vec<User>) -> Vec<User> {
     loop{
         show_player_hand();
-        if players[player_idx as usize].status != -1 {
-            let res = get_int_input(String::from("Player {}: Hit (1) or Hold (2)? "));
+        if players[player_idx].status != -1 {
+            let res = get_int_input(format!("Player {}: Hit (1) or Hold (2)? ", player_idx+1));
             if res == 1 {
                 //hit
+                // let card: Card = deck.draw();
+                // players[player_idx].cards.push(card);
+                // let bust_sum = 0;
+                // for c in players[player_idx].cards.iter() {
+                //     bust_sum += c.lower_val;
+                // }
+                // if bust_sum > 21 {
+                //     players[player_idx].status = -1;
+                // }
             } else if res == 2 {
                 println!("Player {} Holds\n <<====>>", player_idx+1);
                 break;
+            } else {
+                println!("Idiot, try to enter something useful!");
             }
         } else {
             println!("Player {} busted...", player_idx+1);
             break;
         }
     }
+    players
 }
