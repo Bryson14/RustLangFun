@@ -111,6 +111,7 @@ fn player_turn(player_idx: usize, mut players: Vec<User>) -> Vec<User> {
             let res = get_int_input(format!("Player {}: Hit (1) or Hold (2)? ", player_idx+1));
             if res == 1 {
                 //hit
+                //so cool
                 // let card: Card = deck.draw();
                 // players[player_idx].cards.push(card);
                 // let bust_sum = 0;
