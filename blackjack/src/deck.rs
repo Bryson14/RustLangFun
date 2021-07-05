@@ -3,7 +3,7 @@ extern crate rand;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
-// #[derive(Copy, Clone)]
+#[derive(Copy, Clone)]
 pub struct Card {
     pub upper_val: u8,
     pub lower_val: u8,  // only relevant for ace
@@ -17,6 +17,8 @@ impl fmt::Display for Card {
         write!(f, "Card: {}", self.name)
     }
 }
+
+#[derive(Clone)]
 pub struct Deck {
     cards : Vec<Card>,
     current_idx: usize
