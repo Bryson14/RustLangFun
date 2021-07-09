@@ -14,7 +14,7 @@ pub struct Card {
 impl Card {
     pub fn new(u_val: usize, l_val: usize, num: usize, suite: usize) -> Card {
         assert! (num >= 1 && num <= 13);
-        assert! (suite <= 3);
+        assert! (suite <= 3); // 0=spades, 1=hearts, 2=clubs, 3=diamonds
         Card{upper_val: u_val, lower_val: l_val, num: num, suite: suite}
     }
 }
@@ -22,6 +22,9 @@ impl Card {
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut name = String::new();
+        if self.lower_val != self.upper_val && self.num != 1 {
+            panic!("Ace is the only card with a different upper and lower value.");
+        }
         match self.num {
             1 => name.push_str("Ace"),
             2..=10 => name.push_str(self.num.to_string().as_str()),
