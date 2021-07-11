@@ -13,7 +13,6 @@ impl Card {
     pub fn new(num: usize, suite: usize) -> Card {
         assert! (num >= 1 && num <= 13);
         assert! (suite <= 3); // 0=spades, 1=hearts, 2=clubs, 3=diamonds
-        let lower = num;
         Card{ num: num, suite: suite}
     }
 
@@ -59,7 +58,7 @@ impl fmt::Display for Card {
             3 => name.push_str("Diamonds"),
             _ => panic!("An unknown number was in self.suite while printing the card!")
         }
-        write!(f, "Card: {}", name)
+        write!(f, "{}", name)
     }
 }
 
@@ -78,6 +77,9 @@ impl Deck {
                 i += 1;
             }
         }
+        // shuffle before return deck object
+        let mut rng = thread_rng();  
+        cards.shuffle(&mut rng);
         Deck{cards: cards, idx: 0}
     }
 
@@ -85,5 +87,72 @@ impl Deck {
         let c = self.cards[self.idx];
         self.idx = (self.idx + 1) % 52;
         c.expect("None value found in Deck")
+    }
+}
+
+impl fmt::Display for Deck {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let name = format!("Deck Object. {} undrawn cards.", 52 - self.idx);
+        write!(f, "{}", name)
+    }
+}
+
+pub struct User {
+    pub status: i32, // 0 tie, -1 folded, 1 won
+    pub bet: i32,
+    pub money: i32,
+    pub cards: Vec<Card>
+}
+
+impl User {
+    pub fn new() -> User {
+        User{status: 0, bet: 0, money: 100, cards: Vec::new()}
+    }
+}
+
+pub struct BlackJack {
+    players: Vec<User>,
+    pub deck: Deck,
+    num_players: isize,
+    dealer: User
+}
+
+impl BlackJack {
+    pub fn new(num_players: isize) -> BlackJack {
+        let mut players: Vec<User> = Vec::new();
+        for _ in 0..num_players {
+            players.push(User::new());
+        }
+        let d: Deck = Deck::new();
+        BlackJack{players: players, deck: d, num_players: num_players, dealer: User::new()}
+    }
+
+    pub fn start(&self) {
+        loop{
+            // players = get_bets(players);
+            // let copy_deck = d.clone();
+            // players = deal_hands(players, d);
+            // println!("Cards of player 1 {}, {}", players[0].cards[0], players[0].cards[1]);
+            // show_dealer_hand(&players[players.len()-1], false);
+            // for i in 0..num_players {
+            //     if players[i as usize].bet > 0 {
+            //         players = player_turn(i as usize, copy_deck, players);
+            //     }
+            // }
+            // self.dealerTurn()
+            // self.determineWinners()
+            // self.payouts()
+            // self.showResults()
+            // if get_int_input(String::from("Play Again? Yes (1) / No (9)")) != 1 {
+            //     println!("Thanks for playing!");
+            //     break;
+            // }
+                
+            
+    
+            println!("Breaking");
+            break;
+        }
+        // self.showResults()
     }
 }
