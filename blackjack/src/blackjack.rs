@@ -99,9 +99,9 @@ impl fmt::Display for Deck {
 }
 
 pub struct User {
-    pub status: i32, // 0 tie, -1 folded, 1 won
-    pub bet: i32,
-    pub money: i32,
+    pub status: isize, // 0 tie, -1 folded, 1 won
+    pub bet: isize,
+    pub money: isize,
     pub cards: Vec<Card>
 }
 
@@ -148,9 +148,25 @@ impl BlackJack {
     fn get_bets(&self) {
         println!("getting bets");
         let mut i = 1;
-        for player in &self.players {
-            let message = format!("Player {}, Place a bet between {} and {}", i, 5 , 100);
-            let bet = get_int_input(message);
+        for mut player in &self.players {
+            loop {
+                let max = player.money;
+                let message = format!("Player {}, Place a bet between {} and {}. Enter 0 to fold.", i, 5 , 100);
+                let bet = get_int_input(message);
+                match bet {
+                    0 => {
+                        player.bet = 0;
+                        break;
+                    }, b if b > max => {
+                        println!("Too Hi.");
+                    }, b if b < 5 => {
+                        println!("Too Low.");
+                    }, _ => {
+                        player.bet = bet;
+                    }
+                    
+                }
+            }
             i += 1;
         }
     }
