@@ -2,6 +2,7 @@ use std::fmt;
 extern crate rand;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use std::io;
 
 #[derive(Copy, Clone)]
 pub struct Card {
@@ -128,31 +129,55 @@ impl BlackJack {
     }
 
     pub fn start(&self) {
-        loop{
-            // players = get_bets(players);
-            // let copy_deck = d.clone();
-            // players = deal_hands(players, d);
-            // println!("Cards of player 1 {}, {}", players[0].cards[0], players[0].cards[1]);
-            // show_dealer_hand(&players[players.len()-1], false);
-            // for i in 0..num_players {
-            //     if players[i as usize].bet > 0 {
-            //         players = player_turn(i as usize, copy_deck, players);
-            //     }
-            // }
-            // self.dealerTurn()
-            // self.determineWinners()
-            // self.payouts()
-            // self.showResults()
-            // if get_int_input(String::from("Play Again? Yes (1) / No (9)")) != 1 {
-            //     println!("Thanks for playing!");
-            //     break;
-            // }
-                
-            
-    
-            println!("Breaking");
-            break;
+        self.get_bets();
+        // players = deal_hands(players, d);
+        // println!("Cards of player 1 {}, {}", players[0].cards[0], players[0].cards[1]);
+        // show_dealer_hand(&players[players.len()-1], false);
+        for player in &self.players {
+            if player.bet > 0 {
+                self.player_turn(player);
+            }
         }
-        // self.showResults()
+        // self.dealerTurn()
+        // self.determineWinners()
+        // self.payouts()
+        self.show_results();          
+        println!("Breaking");
     }
+
+    fn get_bets(&self) {
+        println!("getting bets");
+        let mut i = 1;
+        for player in &self.players {
+            let message = format!("Player {}, Place a bet between {} and {}", i, 5 , 100);
+            let bet = get_int_input(message);
+            i += 1;
+        }
+    }
+
+    fn player_turn(&self, player: &User) {
+        
+    }
+
+    pub fn show_results(&self) {
+
+    }
+
+}
+
+pub fn get_int_input( message: String) -> isize {
+    println!("{}", message);
+    let mut var = String::new();
+    io::stdin()
+        .read_line(&mut var)
+        .expect("Failed to read line");
+        
+        let var: isize = match var.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("you messed up idiot! Try Again!");
+                get_int_input(message)
+            },
+        };
+    var
 }
