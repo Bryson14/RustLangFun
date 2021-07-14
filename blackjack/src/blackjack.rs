@@ -263,6 +263,7 @@ impl BlackJack {
                 println!("DEALER BUSTED!");
                 break;
             } else {
+                println!("min: {}, max: {}", min_total, max_total);
                 panic!("Unknown matching in dealer_turn().");
             }
         }
