@@ -138,9 +138,9 @@ impl BlackJack {
                 self.player_turn(id);
             }
         }
-        // self.dealerTurn()
+        self.dealer_turn();
         self.show_dealer_hand(true);
-        // self.determineWinners()
+        self.determine_winners();
         // self.payouts()
         self.show_results();          
         println!("Breaking");
@@ -177,7 +177,6 @@ impl BlackJack {
             for player in self.players.iter_mut() {
                 player.cards.push(self.deck.draw());
             }
-
             self.dealer.cards.push(self.deck.draw());
         }
         println!("Cards dealt to players and dealer.");
@@ -222,14 +221,13 @@ impl BlackJack {
     }
 
     fn show_player_cards(&self, player_id: usize) -> usize {
-        let message = String::new();
+        let mut message = String::new();
         let mut min_total = 0;
         let mut max_total = 0;
         for card in self.players[player_id].cards.iter() {
             min_total += card.get_busted_value();
             max_total += card.get_value();
-            let c = format!("- {} -", card);
-            let message = format!("{}{}", message, c);
+            message.push_str(&format!("> {}  ", card));
         }
         println!("\nPlayer's {} HAND...\n{}", player_id+1, message);
         if max_total > 21 {
@@ -244,10 +242,39 @@ impl BlackJack {
         min_total
     }
 
+    fn dealer_turn(&mut self) {
+        loop {
+            let mut min_total = 0;
+            let mut max_total = 0;
+            for card in self.dealer.cards.iter() {
+                min_total += card.get_busted_value();
+                max_total += card.get_value();
+            }
+            if max_total <= 16 {
+                // hit
+                self.dealer.cards.push(self.deck.draw());
+            } else if max_total == 17 && min_total < 16 {
+                // hit on soft 17 because there's an ace
+                self.dealer.cards.push(self.deck.draw());
+            } else if max_total <= 21 {
+                // between 17 - 21, pass
+                break;
+            } else if min_total > 21 {
+                println!("DEALER BUSTED!");
+                break;
+            } else {
+                panic!("Unknown matching in dealer_turn().");
+            }
+        }
+    }
+
+    fn determine_winners(&self) {
+        println!("Determining Winners!");
+    }
+
     pub fn show_results(&self) {
 
     }
-
 }
 
 pub fn get_int_input( message: String) -> isize {
