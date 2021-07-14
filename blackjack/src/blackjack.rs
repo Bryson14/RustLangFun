@@ -128,7 +128,7 @@ impl BlackJack {
         BlackJack{players: players, deck: d, num_players: num_players, dealer: User::new()}
     }
 
-    pub fn start(&self) {
+    pub fn start(&mut self) {
         self.get_bets();
         // players = deal_hands(players, d);
         // println!("Cards of player 1 {}, {}", players[0].cards[0], players[0].cards[1]);
@@ -145,10 +145,10 @@ impl BlackJack {
         println!("Breaking");
     }
 
-    fn get_bets(&self) {
+    fn get_bets(&mut self) {
         println!("getting bets");
         let mut i = 1;
-        for mut player in &self.players {
+        for player in self.players.iter_mut() {
             loop {
                 let max = player.money;
                 let message = format!("Player {}, Place a bet between {} and {}. Enter 0 to fold.", i, 5 , 100);
@@ -163,8 +163,8 @@ impl BlackJack {
                         println!("Too Low.");
                     }, _ => {
                         player.bet = bet;
+                        break;
                     }
-                    
                 }
             }
             i += 1;
