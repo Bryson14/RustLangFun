@@ -99,15 +99,16 @@ impl fmt::Display for Deck {
 }
 
 pub struct User {
-    pub status: isize, // 0 tie, -1 folded, 1 won
+    pub id: isize,
+    pub status: isize, // 0 tie, -1 busted, 1 won
     pub bet: isize,
     pub money: isize,
     pub cards: Vec<Card>
 }
 
 impl User {
-    pub fn new() -> User {
-        User{status: 0, bet: 0, money: 100, cards: Vec::new()}
+    pub fn new(id: isize) -> User {
+        User{id: id, status: 0, bet: 0, money: 100, cards: Vec::new()}
     }
 }
 
@@ -121,24 +122,24 @@ pub struct BlackJack {
 impl BlackJack {
     pub fn new(num_players: isize) -> BlackJack {
         let mut players: Vec<User> = Vec::new();
-        for _ in 0..num_players {
-            players.push(User::new());
+        for i in 0..num_players {
+            players.push(User::new(i));
         }
         let d: Deck = Deck::new();
-        BlackJack{players: players, deck: d, num_players: num_players, dealer: User::new()}
+        BlackJack{players: players, deck: d, num_players: num_players, dealer: User::new(-1)}
     }
 
     pub fn start(&mut self) {
         self.get_bets();
-        // players = deal_hands(players, d);
-        // println!("Cards of player 1 {}, {}", players[0].cards[0], players[0].cards[1]);
-        // show_dealer_hand(&players[players.len()-1], false);
-        for player in &self.players {
-            if player.bet > 0 {
-                self.player_turn(player);
+        self.deal_hands();
+        self.show_dealer_hand(false);
+        for id in 0..self.players.len() {
+            if self.players[id].bet > 0 {
+                self.player_turn(id);
             }
         }
         // self.dealerTurn()
+        self.show_dealer_hand(true);
         // self.determineWinners()
         // self.payouts()
         self.show_results();          
@@ -171,8 +172,76 @@ impl BlackJack {
         }
     }
 
-    fn player_turn(&self, player: &User) {
+    fn deal_hands(&mut self) {
+        for _ in 0..2 { // two cards per player
+            for player in self.players.iter_mut() {
+                player.cards.push(self.deck.draw());
+            }
+
+            self.dealer.cards.push(self.deck.draw());
+        }
+        println!("Cards dealt to players and dealer.");
+    }
+
+    fn show_dealer_hand(&self, show_all: bool) {
+        println!("\n+++++++++++++++++++++\nDEALER IS SHOWING...");
+        if !show_all {
+            for card_num in 0..self.dealer.cards.len() {
+                if card_num == 0 {
+                    println!("> {}", self.dealer.cards[card_num]);
+                } else {
+                    println!("> HIDDEN CARD\n+++++++++++++++++++++");
+                }
+            }
+        } else {
+            for card in self.dealer.cards.iter() {
+                println!("> {}", card);
+            }
+        }
+    }
+
+    fn player_turn(&mut self, player_id: usize) {
+        loop {
+            let min_total = self.show_player_cards(player_id);
+            if min_total > 21 {
+                self.players[player_id].status = -1;
+                break;
+            }
+            let decision = get_int_input(String::from("Hit (1) or Hold (2)?"));
+            match decision {
+                1 => {
+                    self.players[player_id].cards.push(self.deck.draw());
+                }, 2 => {
+                    break;
+                }, _ => {
+                    println!("Invalid response {}\n Try Again!!!", decision);
+                }
+            }
+        }
         
+    }
+
+    fn show_player_cards(&self, player_id: usize) -> usize {
+        let message = String::new();
+        let mut min_total = 0;
+        let mut max_total = 0;
+        for card in self.players[player_id].cards.iter() {
+            min_total += card.get_busted_value();
+            max_total += card.get_value();
+            let c = format!("- {} -", card);
+            let message = format!("{}{}", message, c);
+        }
+        println!("\nPlayer's {} HAND...\n{}", player_id+1, message);
+        if max_total > 21 {
+            if min_total > 21 {
+                println!("BUSTED! Total: {}", min_total);
+            } else {
+                println!("Total is {}", min_total);
+            }
+        } else {
+            println!("Total Showing {}", max_total);
+        }
+        min_total
     }
 
     pub fn show_results(&self) {
