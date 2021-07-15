@@ -157,6 +157,7 @@ impl BlackJack {
                 match bet {
                     0 => {
                         player.bet = 0;
+                        player.status = -1;
                         break;
                     }, b if b > max => {
                         println!("Too Hi.");
@@ -261,6 +262,7 @@ impl BlackJack {
                 break;
             } else if min_total > 21 {
                 println!("DEALER BUSTED!");
+                self.dealer.status = -1;
                 break;
             } else {
                 println!("min: {}, max: {}", min_total, max_total);
@@ -269,12 +271,36 @@ impl BlackJack {
         }
     }
 
-    fn determine_winners(&self) {
-        println!("Determining Winners!");
+    fn determine_winners(&mut self) {
+        if self.dealer.status == -1 {
+            for player in self.players.iter_mut() {
+                if player.status == 0 {
+                    player.status = 1;
+                }
+            }
+        } else {
+            let dealer_total = get_best_score(&self.dealer.cards);
+            for player in self.players.iter_mut() {
+                if get_best_score(&player.cards) > dealer_total {
+                    player.status = 1;
+                } else {
+                    player.status = -1;
+                }
+            }
+        }
     }
 
-    pub fn show_results(&self) {
+    
 
+    pub fn show_results(&mut self) {
+        for player in self.players.iter_mut() {
+            if player.status == 1 {
+                println!("Player {} won {} chips!", player.id +1, player.bet);
+                player.bet = player.bet * 2;
+            } else {
+                println!("Player {} lost.", player.id + 1);
+            }
+        }
     }
 }
 
@@ -293,4 +319,9 @@ pub fn get_int_input( message: String) -> isize {
             },
         };
     var
+}
+
+fn get_best_score(cards: &Vec<Card>) -> isize {
+    5
+    // recursion would be great here
 }
