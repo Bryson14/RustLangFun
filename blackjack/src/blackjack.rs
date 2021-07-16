@@ -297,8 +297,10 @@ impl BlackJack {
             if player.status == 1 {
                 println!("Player {} won {} chips!", player.id +1, player.bet);
                 player.bet = player.bet * 2;
-            } else {
+            } else if player.status == -1 {
                 println!("Player {} lost.", player.id + 1);
+            } else {
+                println!("Player {} status was 0", player.id +1);
             }
         }
     }
@@ -322,6 +324,29 @@ pub fn get_int_input( message: String) -> isize {
 }
 
 fn get_best_score(cards: &Vec<Card>) -> isize {
-    5
-    // recursion would be great here
+    get_best_score_recur(cards, 0)
+}
+
+fn get_best_score_recur(cards: &Vec<Card>, idx: usize) -> isize {
+    if idx > cards.len() - 1 {
+        0
+    } else {
+        if cards[idx].is_ace() {
+            let one = 1 + get_best_score_recur(cards, idx + 1);
+            let eleven = 11 + get_best_score_recur(cards, idx + 1);
+            if one > eleven && one <= 21 {
+                one
+            } else if eleven > one && eleven <= 21 {
+                eleven
+            } else if one <= 21 {
+                one
+            } else if eleven <= 21 {
+                eleven
+            } else {
+                panic!("one: {}, eleven: {}", one, eleven);
+            }
+        } else {
+            cards[idx].get_value() as isize + get_best_score_recur(cards, idx + 1)
+        }
+    }
 }
