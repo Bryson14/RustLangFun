@@ -1,7 +1,9 @@
+mod card;
+mod hand; 
+mod deck;
+mod user;
 mod blackjack;
 use blackjack::BlackJack;
-use blackjack:: Hand;
-use blackjack::Card;
 use blackjack::get_int_input;
 use std::io::{stdin, stdout, Read, Write};
 
