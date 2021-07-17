@@ -72,7 +72,7 @@ impl Hand {
             }
             score += card.get_busted_value();
         }
-        if score <= 10 && num_aces > 0 {
+        if score <= 11 && num_aces > 0 {
             score += 10;
         }
         score

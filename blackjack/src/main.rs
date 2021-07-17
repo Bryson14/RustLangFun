@@ -5,6 +5,8 @@ mod user;
 mod blackjack;
 use blackjack::BlackJack;
 use blackjack::get_int_input;
+mod blackjack_sim;
+use blackjack_sim::BlackJackSim;
 use std::io::{stdin, stdout, Read, Write};
 
 fn main() {
