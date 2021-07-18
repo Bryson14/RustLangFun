@@ -6,33 +6,37 @@ use std::io;
 pub struct BlackJackSim {
     players: Vec<User>,
     pub deck: Deck,
-    dealer: User
+    dealer: User,
+    rounds: i32
 }
 
 impl BlackJackSim {
-    pub fn new(num_players: isize) -> BlackJackSim {
+    fn new(rounds:i32) -> BlackJackSim {
         let mut players: Vec<User> = Vec::new();
-        for i in 0..num_players {
+        for i in 0..4 {
             players.push(User::new(i));
         }
         let d: Deck = Deck::new();
-        BlackJackSim{players: players, deck: d, dealer: User::new(-1)}
+        BlackJackSim{players: players, deck: d, dealer: User::new(-1), rounds: rounds}
     }
 
     pub fn start(&mut self) {
-        self.get_bets();
-        self.deal_hands();
-        self.show_dealer_hand(false);
-        for id in 0..self.players.len() {
-            if self.players[id].bet > 0 {
-                self.player_turn(id);
+        for _ in 0..self.rounds {
+            self.get_bets();
+            self.deal_hands();
+            self.show_dealer_hand(false);
+            for id in 0..self.players.len() {
+                if self.players[id].bet > 0 {
+                    self.player_turn(id);
+                }
             }
+            self.dealer_turn();
+            self.show_dealer_hand(true);
+            self.determine_winners();
+            // self.payouts();
+            self.show_results();
         }
-        self.dealer_turn();
-        self.show_dealer_hand(true);
-        self.determine_winners();
-        // self.payouts();
-        self.show_results();
+        
     }
 
     fn get_bets(&mut self) {
