@@ -6,7 +6,7 @@ mod user;
 use blackjack::get_int_input;
 use blackjack::BlackJack;
 mod blackjack_sim;
-use blackjack_sim::BlackJackSim;
+// use blackjack_sim::BlackJackSim;
 use std::io::{stdin, stdout, Read, Write};
 
 /// This is main function that gets the number of players from the user and starts `blackjack()`
