@@ -2,11 +2,12 @@ extern crate rand;
 use crate::deck::Deck;
 use crate::user::User;
 use std::io;
+use std::{thread, time};
 
 pub struct BlackJack {
     players: Vec<User>,
     pub deck: Deck,
-    dealer: User
+    dealer: User,
 }
 
 impl BlackJack {
@@ -16,7 +17,11 @@ impl BlackJack {
             players.push(User::new(i));
         }
         let d: Deck = Deck::new();
-        BlackJack{players: players, deck: d, dealer: User::new(-1)}
+        BlackJack {
+            players: players,
+            deck: d,
+            dealer: User::new(-1),
+        }
     }
 
     pub fn start(&mut self) {
@@ -41,18 +46,24 @@ impl BlackJack {
         for player in self.players.iter_mut() {
             loop {
                 let max = player.money;
-                let message = format!("Player {}, Place a bet between {} and {}. Enter 0 to fold.", i, 5 , 100);
+                let message = format!(
+                    "Player {}, Place a bet between {} and {}. Enter 0 to fold.",
+                    i, 5, 100
+                );
                 let bet = get_int_input(message);
                 match bet {
                     0 => {
                         player.bet = 0;
                         player.status = -1;
                         break;
-                    }, b if b > max => {
+                    }
+                    b if b > max => {
                         println!("Too Hi.");
-                    }, b if b < 5 => {
+                    }
+                    b if b < 5 => {
                         println!("Too Low.");
-                    }, _ => {
+                    }
+                    _ => {
                         player.bet = bet;
                         break;
                     }
@@ -63,7 +74,8 @@ impl BlackJack {
     }
 
     fn deal_hands(&mut self) {
-        for _ in 0..2 { // two cards per player
+        for _ in 0..2 {
+            // two cards per player
             for player in self.players.iter_mut() {
                 player.cards.add(self.deck.draw());
             }
@@ -95,26 +107,32 @@ impl BlackJack {
             self.show_player_cards(player_id);
             if self.players[player_id].cards.get_score() == -1 {
                 self.players[player_id].status = -1;
+                thread::sleep(time::Duration::from_secs(1));
                 break;
             }
             let decision = get_int_input(String::from("Hit (1) or Hold (2)?"));
             match decision {
                 1 => {
                     self.players[player_id].cards.add(self.deck.draw());
-                }, 2 => {
+                }
+                2 => {
                     break;
-                }, _ => {
+                }
+                _ => {
                     println!("Invalid response {}\n Try Again!!!", decision);
                 }
             }
         }
-        
     }
 
     fn show_player_cards(&self, player_id: usize) {
-        println!("\n### Player's {} HAND ###\n{}", player_id+1, self.players[player_id].cards);
-        if  self.players[player_id].cards.get_score() == -1 {
-            println!("BUSTED!")
+        println!(
+            "\n### Player's {} HAND ###\n{}",
+            player_id + 1,
+            self.players[player_id].cards
+        );
+        if self.players[player_id].cards.get_score() == -1 {
+            println!("BUSTED!");
         }
     }
 
@@ -167,30 +185,30 @@ impl BlackJack {
     pub fn show_results(&mut self) {
         for player in self.players.iter_mut() {
             if player.status == 1 {
-                println!("Player {} won {} chips!", player.id +1, player.bet);
+                println!("Player {} won {} chips!", player.id + 1, player.bet);
                 player.bet = player.bet * 2;
             } else if player.status == -1 {
                 println!("Player {} lost.", player.id + 1);
             } else {
-                println!("Player {} status was 0", player.id +1);
+                println!("Player {} status was 0", player.id + 1);
             }
         }
     }
 }
 
-pub fn get_int_input( message: String) -> isize {
+pub fn get_int_input(message: String) -> isize {
     println!("{}", message);
     let mut var = String::new();
     io::stdin()
         .read_line(&mut var)
         .expect("Failed to read line");
-        
-        let var: isize = match var.trim().parse() {
-            Ok(num) => num,
-            Err(_) => {
-                println!("you messed up idiot! Try Again!");
-                get_int_input(message)
-            },
-        };
+
+    let var: isize = match var.trim().parse() {
+        Ok(num) => num,
+        Err(_) => {
+            println!("you messed up idiot! Try Again!");
+            get_int_input(message)
+        }
+    };
     var
 }
