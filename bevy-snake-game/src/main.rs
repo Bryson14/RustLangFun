@@ -1,52 +1,33 @@
+#![allow(unused)]
+
 use bevy::prelude::*;
 
-//https://github.com/bevyengine/bevy/blob/latest/examples/game/breakout.rs
+const PLAYER_SPRITE: &str = "player_a_01.png";
+const SPEED: i32 = 600;
 
 fn main() {
     App::build()
+        .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.1)))
+        .insert_resource(WindowDescriptor {
+            title: "Space Invaders!".to_string(),
+            width: 600.00,
+            height: 680.00,
+            ..Default::default()
+        })
         .add_plugins(DefaultPlugins)
-        .add_plugin(HelloPlugin)
+        .add_startup_system(setup.system())
         .run();
 }
 
-pub struct HelloPlugin;
+fn setup(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut windows: ResMut<Windows>,
+) {
+    // creating camera
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-impl Plugin for HelloPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        // the reason we call from_seconds with the true flag is to make the timer repeat itself
-        app.insert_resource(GreetTimer(Timer::from_seconds(2.0, true)))
-            .add_startup_system(add_people.system())
-            .add_system(greet_people.system());
-    }
-}
-
-struct Person;
-
-struct Name(String);
-
-fn add_people(mut commands: Commands) {
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Elaina Proctor".to_string()));
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Renzo Hume".to_string()));
-    commands
-        .spawn()
-        .insert(Person)
-        .insert(Name("Zayna Nieves".to_string()));
-}
-
-struct GreetTimer(Timer);
-
-fn greet_people(time: Res<Time>, mut timer: ResMut<GreetTimer>, query: Query<&Name, With<Person>>) {
-    // update our timer with the time elapsed since the last update
-    // if that caused the timer to finish, we say hello to everyone
-    if timer.0.tick(time.delta()).just_finished() {
-        for name in query.iter() {
-            println!("hello {}!", name.0);
-        }
-    }
+    // position window
+    let mut window = windows.get_primary_mut().unwrap();
+    window.set_position(IVec2::new(3870, 4830));
 }
