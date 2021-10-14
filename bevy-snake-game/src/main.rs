@@ -3,7 +3,6 @@
 use bevy::prelude::*;
 
 const PLAYER_SPRITE: &str = "player_a_01.png";
-const SPEED: i32 = 600;
 
 fn main() {
     App::build()
