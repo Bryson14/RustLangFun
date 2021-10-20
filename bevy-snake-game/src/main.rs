@@ -29,6 +29,7 @@ fn main() {
 
 fn setup(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut windows: ResMut<Windows>,
 ) {
@@ -36,6 +37,13 @@ fn setup(
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
     // position window
-    let mut window = windows.get_primary_mut().unwrap();
-    window.set_position(IVec2::new(3870, 4830));
+    // let mut window = windows.get_primary_mut().unwrap();
+    // window.set_position(IVec2::new(3870, 4830));
+
+    // spawn main character big rectangle
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(asset_server.load(PLAYER_SPRITE).into()),
+        sprite: Sprite::new(Vec2::new(200.0, 100.)),
+        ..Default::default()
+    });
 }
