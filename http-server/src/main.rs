@@ -27,4 +27,8 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn move_int(i: &mut [i32; 5]) {}
+fn move_int(i: &mut [i32; 5]) {
+    for item in i.iter_mut() {
+        *item *= 5;
+    }
+}
