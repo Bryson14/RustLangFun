@@ -10,25 +10,20 @@ error_chain! {
 }
 
 fn main() -> Result<()> {
-    let mut res = reqwest::blocking::get("http://reddit.com/")?;
+    let mut res = reqwest::blocking::get("http://www.google.com/")?;
     let mut body = String::new();
     res.read_to_string(&mut body)?;
 
-    // println!("Status: {}", res.status());
-    // println!("Headers:\n{:#?}", res.headers());
-    // println!("Body:\n{}", body);
-
-    let mut a: [i32; 5] = [10, 20, 30, 40, 50];
-    println!("a before: {:?}", a);
-    move_int(&mut a);
-
-    println!("a after: {:?}", a);
+    println!("Status: {}", res.status());
+    println!("Headers:\n{:#?}", res.headers());
+    println!("Body:\n{}", body);
 
     Ok(())
 }
 
-fn move_int(i: &mut [i32; 5]) {
+fn move_int(i: &mut Vec<i32>) {
     for item in i.iter_mut() {
+        print!("{} -> {:p}  ", item, item);
         *item *= 5;
     }
 }
