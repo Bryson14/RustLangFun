@@ -1,29 +1,25 @@
-use error_chain::error_chain;
-use reqwest;
-use std::io::Read;
+#[macro_use]
+extern crate rocket;
 
-error_chain! {
-    foreign_links {
-        Io(std::io::Error);
-        HttpRequest(reqwest::Error);
-    }
+#[get("/")]
+fn index() -> &'static str {
+    "Hello, world!"
 }
 
-fn main() -> Result<()> {
-    let mut res = reqwest::blocking::get("http://www.google.com/")?;
-    let mut body = String::new();
-    res.read_to_string(&mut body)?;
-
-    println!("Status: {}", res.status());
-    println!("Headers:\n{:#?}", res.headers());
-    // println!("Body:\n{}", body);
-
-    Ok(())
+#[get("/")]
+fn about() -> &'static str {
+    "<h1>Bryson</h1><p> My name is jonas !!!!!! </p>"
 }
 
-fn move_int(i: &mut Vec<i32>) {
-    for item in i.iter_mut() {
-        print!("{} -> {:p}  ", item, item);
-        *item *= 5;
-    }
+#[get("/about")]
+fn about_new() -> &'static str {
+    "This is a new about page"
+}
+
+#[launch]
+fn rocket() -> _ {
+    rocket::build()
+        .mount("/", routes![index])
+        .mount("/about", routes![about])
+        .mount("/about", routes![about_new])
 }
