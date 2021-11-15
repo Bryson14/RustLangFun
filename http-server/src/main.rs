@@ -13,7 +13,7 @@ fn about() -> &'static str {
 
 #[get("/about")]
 fn about_new() -> &'static str {
-    "My Name is Bryon!!"
+    "My Name is Bryon!!. Can you believe this??"
 }
 
 #[launch]
