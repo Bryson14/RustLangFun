@@ -18,7 +18,7 @@ fn about_new() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
-    println!("this is a macro");
+    println!("this is a macro. OMG!");
 
     rocket::build()
         .mount("/", routes![index])
