@@ -9,7 +9,7 @@ const ENEMY_LASER_SPRITE: &str = "laser_b_01.png";
 const EXPLOSION_SHEET: &str = "explo_a_sheet.png";
 const SCALE: f32 = 0.5;
 const TIME_STEP: f32 = 1. / 60.;
-const MAX_ENEMIES: u32 = 8;
+const MAX_ENEMIES: u32 = 10;
 const MAX_FORMATION_MEMBERS: u32 = 2;
 const PLAYER_RESPAWN_DELAY: f64 = 1.5;
 
