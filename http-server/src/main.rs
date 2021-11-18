@@ -1,27 +1,18 @@
-#[macro_use]
-extern crate rocket;
+use std::net::TcpListener;
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-}
+fn main() {
+    let port = "127.0.0.1:80";
+    let listener = match TcpListener::bind(port) {
+        Ok(TcpListener) => TcpListener,
+        Err(e) => {
+            println!("Error happened binding to port {} {}", port, e);
+            panic!();
+        }
+    };
 
-#[get("/")]
-fn about() -> &'static str {
-    "<h1>Bryson</h1><p> My name is jonas !!!!!! </p>"
-}
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
 
-#[get("/about")]
-fn about_new() -> &'static str {
-    "My Name is Bryon!!. Can you believe this??"
-}
-
-#[launch]
-fn rocket() -> _ {
-    println!("this is a macro. OMG!");
-
-    rocket::build()
-        .mount("/", routes![index])
-        .mount("/about", routes![about])
-        .mount("/about", routes![about_new])
+        println!("connection established!");
+    }
 }
