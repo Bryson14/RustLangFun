@@ -1,18 +1,16 @@
+use std::io::prelude::*;
 use std::net::TcpListener;
+use std::net::TcpStream;
 
 fn main() {
     let port = "127.0.0.1:80";
-    let listener = match TcpListener::bind(port) {
-        Ok(TcpListener) => TcpListener,
-        Err(e) => {
-            println!("Error happened binding to port {} {}", port, e);
-            panic!();
-        }
-    };
+    let listener = TcpListener::bind(port).expect("Error binding to the port");
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        println!("connection established!");
+        println!("connection established! !!");
     }
 }
+
+fn handle_connection(mut stream: TcpStream) {}
