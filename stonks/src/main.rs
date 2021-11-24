@@ -1,7 +1,9 @@
+mod battleship;
 mod filecontroler;
 mod fizzbuzz;
 mod hello;
 
+use battleship::play_battleship;
 use filecontroler::{append_file, open_file};
 use fizzbuzz::fizzbuzz;
 use hello::greet;
@@ -14,6 +16,7 @@ fn main() {
     append_file("message.txt", "\nThis is stupid");
     open_file("message.txt");
     separator();
+    play_battleship();
 }
 
 fn separator() {
