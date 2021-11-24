@@ -1,31 +1,22 @@
-extern crate rayon;
-use rayon::prelude::*;
-use std::thread::sleep;
-use std::time::{Duration, Instant};
+mod filecontroler;
+mod fizzbuzz;
+mod hello;
 
-fn sqrts(floats: Vec<f64>) -> Vec<f64> {
-    floats.par_iter().map(|&f| expensive_operation(f)).collect()
-}
-
-fn sqrts_seq(floats: Vec<f64>) -> Vec<f64> {
-    floats.iter().map(|&f| expensive_operation(f)).collect()
-}
-
-fn expensive_operation(time: f64) -> f64 {
-    sleep(Duration::from_millis(time as u64));
-    (time * time).into()
-}
+use filecontroler::{append_file, open_file};
+use fizzbuzz::fizzbuzz;
+use hello::greet;
 
 fn main() {
-    let v: Vec<f64> = (0..100).map(f64::from).collect();
-    let v2 = v.clone();
+    greet("Bryson".to_owned());
+    separator();
+    fizzbuzz(15);
+    separator();
+    append_file("message.txt", "\nThis is stupid");
+    open_file("message.txt");
+    separator();
+}
 
-    let now = Instant::now();
-    sqrts(v);
-    let parallel = now.elapsed().as_millis();
-
-    let now = Instant::now();
-    sqrts_seq(v2);
-    let seq = now.elapsed().as_millis();
-    println!("parallel {}, seqential {}", parallel, seq);
+fn separator() {
+    let line = (0..50).map(|_x| "*").collect::<Vec<&str>>().join("");
+    println!("\n{}\n", line);
 }
