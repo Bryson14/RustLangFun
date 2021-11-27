@@ -12,9 +12,9 @@ fn main() {
     greet("Bryson".to_owned());
     separator();
     fizzbuzz(15);
-    separator();
-    append_file("message.txt", "\nThis is stupid");
-    open_file("message.txt");
+    // separator();
+    // append_file("message.txt", "\nThis is stupid");
+    // open_file("message.txt");
     separator();
     play_battleship();
 }

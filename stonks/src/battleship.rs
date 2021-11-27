@@ -135,6 +135,29 @@ impl<'a> Map<'a> {
     fn get_index(&self, col: usize, row: usize) -> usize {
         self.width * row + col
     }
+
+    fn print_map(&self, private: bool) {
+        for row in 0..self.height {
+            for col in 0..self.width {
+                let location = self.map[self.get_index(col, row)];
+                let to_print = match location {
+                    BattleshipLocation::Miss => "o".to_string(),
+                    BattleshipLocation::DestroyedShip(_) => "X".to_string(),
+                    BattleshipLocation::HitShip(_) => "x".to_string(),
+                    BattleshipLocation::Empty => ".".to_string(),
+                    BattleshipLocation::OkShip(ship) => {
+                        if private {
+                            ship.id.to_string()
+                        } else {
+                            ".".to_string()
+                        }
+                    }
+                };
+                print!("{} ", to_print)
+            }
+            println!();
+        }
+    }
 }
 
 fn open_file(filename: &str) -> Result<String, String> {
@@ -163,6 +186,9 @@ pub fn play_battleship() {
 
     player_one_map.read_map_config("player_1_battleship.txt");
     player_two_map.read_map_config("player_2_battleship.txt");
+
+    player_one_map.print_map(true);
+    player_one_map.print_map(false);
 
     loop {
         // get input from player 1
