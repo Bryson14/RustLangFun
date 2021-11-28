@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'intermediate_buildup_projects'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=intermediate_buildup_projects",
+                    "--package=intermediate_buildup_projects"
+                ],
+                "filter": {
+                    "name": "intermediate_buildup_projects",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'intermediate_buildup_projects'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=intermediate_buildup_projects",
+                    "--package=intermediate_buildup_projects"
+                ],
+                "filter": {
+                    "name": "intermediate_buildup_projects",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
