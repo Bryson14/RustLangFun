@@ -8,6 +8,7 @@
 use std::env;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
+use std::io::{stdin, stdout, Write};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 struct Ship<'a> {
@@ -91,7 +92,7 @@ impl<'a> Map<'a> {
         Ok(())
     }
 
-    pub fn missle_strike(&mut self, col: usize, row: char) -> Result<(), String> {
+    pub fn missle_strike(&mut self, col: usize, row: char) -> Result<(String), String> {
         let row_idx = match row {
             'A' | 'a' => 0,
             'B' | 'b' => 1,
@@ -116,8 +117,11 @@ impl<'a> Map<'a> {
         }
 
         let idx = self.get_index(col, row_idx);
-        match self.map[idx] {
-            BattleshipLocation::Empty => self.map[idx] = BattleshipLocation::Miss,
+        return match self.map[idx] {
+            BattleshipLocation::Empty => {
+                self.map[idx] = BattleshipLocation::Miss;
+                Ok(String::from("miss"))
+            }
             BattleshipLocation::OkShip(ship) => {
                 self.map[idx] = BattleshipLocation::HitShip(ship);
                 if !self.map.contains(&BattleshipLocation::OkShip(ship)) {
@@ -133,20 +137,28 @@ impl<'a> Map<'a> {
                             }
                         })
                         .collect::<Vec<BattleshipLocation>>();
+                    Ok(format!("Sunk the ship {}!", ship.id))
+                } else {
+                    Ok(String::from("hit"))
                 }
             }
             BattleshipLocation::HitShip(_ship) => {
-                return Err("You have already shot and hit this ship at this location".to_string())
+                Err("You have already shot and hit this ship at this location".to_string())
             }
             BattleshipLocation::Miss => {
-                return Err("You have already shot and missed at this location".to_string())
+                Err("You have already shot and missed at this location".to_string())
             }
             BattleshipLocation::DestroyedShip(_ship) => {
-                return Err("You have already shot and sunk this ship".to_string())
+                Err("You have already shot and sunk this ship".to_string())
             }
-        }
+        };
+    }
 
-        Ok(())
+    fn all_destroyed(&self) -> bool {
+        self.map.iter().all(|x| match x {
+            BattleshipLocation::OkShip(_) => true,
+            _ => false,
+        })
     }
 
     fn get_index(&self, col: usize, row: usize) -> usize {
@@ -154,7 +166,7 @@ impl<'a> Map<'a> {
     }
 
     fn print_map(&self, private: bool) {
-        println!("Map - Top Secret?: {}", private);
+        // println!("Map - Top Secret?: {}", private);
         let row_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
         print!("   ");
         for x in 0..self.width {
@@ -210,6 +222,51 @@ fn open_file(filename: &str) -> Result<String, String> {
     Ok(contents)
 }
 
+fn get_user_input(message: &str) -> (usize, char) {
+    let mut s = String::new();
+    println!("{}", message);
+    print!("Please tell me where to launch the missle! e.g. 'D5'.\n> ");
+    let _ = stdout().flush();
+    stdin()
+        .read_line(&mut s)
+        .expect("Did not enter a correct string");
+
+    // getting rid of newline
+    if let Some('\n') = s.chars().next_back() {
+        s.pop();
+    }
+    if let Some('\r') = s.chars().next_back() {
+        s.pop();
+    }
+
+    let characters: Vec<char> = s.chars().collect();
+    if characters.len() != 2 {
+        println!("Please try again entering coordinates. You entered {}", s);
+        return get_user_input(message);
+    } else {
+        let row = characters[0];
+        let col: usize = match characters[1].to_digit(10) {
+            Some(num) => num as usize,
+            None => {
+                println!("Err parsing letter. You entered {}", s);
+                return get_user_input(message);
+            }
+        };
+        (col, row)
+    }
+}
+
+fn players_turn<'a>(player: usize, map: &'a mut Map) -> bool {
+    println!("Player 1 Map");
+    map.print_map(false);
+    let (col, row) = get_user_input("Player 2, choose a location to strike!");
+    // TODO find if missle hit anything
+    match map.missle_strike(col, row) {
+        Ok(message) => println!("{}", message),
+        Err(e) => println!("{}", e),
+    }
+}
+
 pub fn play_battleship() {
     println!("Yeah battleship");
     let mut player_one_map = Map::new();
@@ -222,22 +279,24 @@ pub fn play_battleship() {
         .read_map_config("player_2_battleship.txt")
         .unwrap();
 
-    player_two_map.missle_strike(1, 'A').unwrap();
-    player_two_map.missle_strike(2, 'A').unwrap();
-    player_two_map.print_map(false);
-    player_two_map.missle_strike(3, 'A').unwrap();
-
-    player_two_map.print_map(true);
-
     loop {
-        // get input from player 1
-        // missle strike
-        // check map 2 if all destroyed
+        let replay_turn_1 = false;
+        players_turn(1, &mut player_one_map);
+        if player_one_map.all_destroyed() {
+            break;
+        }
 
-        // get input from player 2
-        // missle strike
-        // check map 1 if all destroyed
-        break;
+        println!("Player 2 Map");
+        player_two_map.print_map(false);
+        let (col, row) = get_user_input("Player 1, choose a location to strike!");
+        // TODO find if missle hit anything
+        match player_two_map.missle_strike(col, row) {
+            Ok(message) => println!("{}", message),
+            Err(e) => println!("{}", e),
+        }
+        if player_two_map.all_destroyed() {
+            break;
+        }
     }
 }
 
