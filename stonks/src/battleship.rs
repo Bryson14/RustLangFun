@@ -120,7 +120,7 @@ impl<'a> Map<'a> {
         return match self.map[idx] {
             BattleshipLocation::Empty => {
                 self.map[idx] = BattleshipLocation::Miss;
-                Ok(String::from("miss"))
+                Ok(String::from("Miss"))
             }
             BattleshipLocation::OkShip(ship) => {
                 self.map[idx] = BattleshipLocation::HitShip(ship);
@@ -139,7 +139,7 @@ impl<'a> Map<'a> {
                         .collect::<Vec<BattleshipLocation>>();
                     Ok(format!("Sunk the ship {}!", ship.id))
                 } else {
-                    Ok(String::from("hit"))
+                    Ok(String::from("Hit"))
                 }
             }
             BattleshipLocation::HitShip(_ship) => {
@@ -156,8 +156,8 @@ impl<'a> Map<'a> {
 
     fn all_destroyed(&self) -> bool {
         self.map.iter().all(|x| match x {
-            BattleshipLocation::OkShip(_) => true,
-            _ => false,
+            BattleshipLocation::OkShip(_) => false,
+            _ => true,
         })
     }
 
@@ -256,15 +256,45 @@ fn get_user_input(message: &str) -> (usize, char) {
     }
 }
 
-fn players_turn<'a>(player: usize, map: &'a mut Map) -> bool {
-    println!("Player 1 Map");
-    map.print_map(false);
-    let (col, row) = get_user_input("Player 2, choose a location to strike!");
-    // TODO find if missle hit anything
-    match map.missle_strike(col, row) {
-        Ok(message) => println!("{}", message),
-        Err(e) => println!("{}", e),
+fn players_turn<'a>(player: usize, map: &'a mut Map) {
+    'inner: loop {
+        println!("PLAYER {}'s TURN", player);
+        map.print_map(false);
+        let (col, row) =
+            get_user_input(&format!("Player {}, choose a location to strike!", player));
+        match map.missle_strike(col, row) {
+            Ok(message) if message.contains("Hit") => {
+                println!("{}", message);
+                println!("Player {}, GO Again", player);
+            }
+            Ok(message) if message.contains("Sunk") => {
+                println!("{}", message);
+                if map.all_destroyed() {
+                    break 'inner;
+                } else {
+                    println!("Player {}, GO Again", player);
+                }
+            }
+            Ok(message) if message.contains("Miss") => {
+                println!("{}", message);
+                break 'inner;
+            }
+            Ok(message) => {
+                println!("Unknown message: {}", message);
+                break 'inner;
+            }
+            Err(e) => {
+                println!("{}", e);
+            }
+        }
     }
+}
+
+fn take_turns() {
+    use std::thread::sleep;
+    use std::time::Duration;
+    println!("\n++++++++++++++\nChanging Turns!\n++++++++++++++\n");
+    sleep(Duration::from_millis(1500));
 }
 
 pub fn play_battleship() {
@@ -279,25 +309,21 @@ pub fn play_battleship() {
         .read_map_config("player_2_battleship.txt")
         .unwrap();
 
-    loop {
-        let replay_turn_1 = false;
-        players_turn(1, &mut player_one_map);
+    let winner: u8 = 'outer: loop {
+        players_turn(2, &mut player_one_map);
         if player_one_map.all_destroyed() {
-            break;
+            break 'outer 2;
         }
+        take_turns();
 
-        println!("Player 2 Map");
-        player_two_map.print_map(false);
-        let (col, row) = get_user_input("Player 1, choose a location to strike!");
-        // TODO find if missle hit anything
-        match player_two_map.missle_strike(col, row) {
-            Ok(message) => println!("{}", message),
-            Err(e) => println!("{}", e),
-        }
+        players_turn(1, &mut player_two_map);
         if player_two_map.all_destroyed() {
-            break;
+            break 'outer 1;
         }
-    }
+        take_turns();
+    };
+
+    println!("Congratulations! Player {} won!", winner);
 }
 
 mod tests {
