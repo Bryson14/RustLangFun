@@ -6,9 +6,11 @@
 // track ships remaining
 
 use std::env;
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::prelude::*;
 use std::io::{stdin, stdout, Write};
+use std::thread::sleep;
+use std::time::Duration;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 struct Ship<'a> {
@@ -92,7 +94,7 @@ impl<'a> Map<'a> {
         Ok(())
     }
 
-    pub fn missle_strike(&mut self, col: usize, row: char) -> Result<(String), String> {
+    pub fn missle_strike(&mut self, col: usize, row: char) -> Result<String, String> {
         let row_idx = match row {
             'A' | 'a' => 0,
             'B' | 'b' => 1,
@@ -291,8 +293,6 @@ fn players_turn<'a>(player: usize, map: &'a mut Map) {
 }
 
 fn take_turns() {
-    use std::thread::sleep;
-    use std::time::Duration;
     println!("\n++++++++++++++\nChanging Turns!\n++++++++++++++\n");
     sleep(Duration::from_millis(1500));
 }
@@ -324,10 +324,17 @@ pub fn play_battleship() {
     };
 
     println!("Congratulations! Player {} won!", winner);
+    sleep(Duration::from_millis(1500));
+    println!("Player 1 map");
+    player_one_map.print_map(true);
+    sleep(Duration::from_millis(1500));
+    println!("Player 2 map");
+    player_two_map.print_map(true);
 }
 
+#[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{BattleshipLocation, Map};
 
     #[test]
     fn test_map() {

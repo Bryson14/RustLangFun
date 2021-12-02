@@ -1,22 +1,21 @@
+mod advent_of_code;
 mod battleship;
 mod filecontroler;
 mod fizzbuzz;
 mod hello;
 
+use advent_of_code::adventofcode_day1::num_of_increases;
 use battleship::play_battleship;
-use filecontroler::{append_file, open_file};
 use fizzbuzz::fizzbuzz;
 use hello::greet;
 
 fn main() {
-    greet("Bryson".to_owned());
-    separator();
-    fizzbuzz(15);
+    // greet("Bryson".to_owned());
     // separator();
-    // append_file("message.txt", "\nThis is stupid");
-    // open_file("message.txt");
-    separator();
-    play_battleship();
+    // fizzbuzz(15);
+    // separator();
+    // play_battleship();
+    num_of_increases();
 }
 
 fn separator() {
