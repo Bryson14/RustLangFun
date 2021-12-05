@@ -1,4 +1,4 @@
-use crate::read_from_data_dir;
+use crate::{parse_strs_to_ints, read_from_data_dir};
 
 /// You're minding your own business on a ship at sea when the overboard alarm goes off!
 /// You rush to see if you can help. Apparently, one of the Elves tripped and accidentally
@@ -66,8 +66,9 @@ pub fn part1() {
     println!("Here in day1_1");
 
     let data = read_from_data_dir("day1.txt").unwrap();
-    let data: Vec<i32> = data.split(" ").map(|x| x.parse::<i32>().unwrap()).collect();
-    let answer = sonar_sweep(data);
+    let vec_strings: Vec<String> = data.split(" ").map(|x| String::from(x.trim())).collect();
+    let vec_ints = parse_strs_to_ints(vec_strings);
+    let answer = sonar_sweep(vec_ints);
     println!("The answer for day 1, part 1 is {}", answer);
 }
 
@@ -86,8 +87,9 @@ fn sonar_sweep(depths: Vec<i32>) -> i32 {
 
 pub fn part2() {
     let data = read_from_data_dir("day1.txt").unwrap();
-    let data: Vec<i32> = data.split(" ").map(|x| x.parse::<i32>().unwrap()).collect();
-    let answer = dive(data);
+    let vec_strings: Vec<String> = data.split(" ").map(|x| String::from(x.trim())).collect();
+    let vec_ints = parse_strs_to_ints(vec_strings);
+    let answer = dive(vec_ints);
     println!("The answer for day 1, part 2 is {}", answer);
 }
 

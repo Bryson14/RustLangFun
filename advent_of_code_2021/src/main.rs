@@ -1,7 +1,7 @@
 mod data_tools;
 mod day1;
 
-use data_tools::read_from_data_dir;
+use data_tools::{parse_strs_to_ints, read_from_data_dir};
 
 fn main() {
     // # Day 1

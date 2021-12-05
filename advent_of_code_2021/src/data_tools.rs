@@ -9,6 +9,13 @@ pub fn read_from_data_dir(filename: &str) -> Result<String, String> {
     Ok(output)
 }
 
+pub fn parse_strs_to_ints(data: Vec<String>) -> Result<Vec<i32, _>> {
+    let data: Vec<i32> = data
+        .split(" ")
+        .map(|x| x.trim().parse().expect("Wrong number format"))
+        .collect();
+}
+
 #[cfg(test)]
 mod test {
     use super::read_from_data_dir;
@@ -24,4 +31,7 @@ mod test {
         let data = read_from_data_dir("some_stuff.txt");
         assert_eq!(data.is_err(), true);
     }
+
+    #[test]
+    fn test_parse_vec() {}
 }
