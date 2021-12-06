@@ -1,5 +1,6 @@
 use crate::{read_from_data_dir, string_to_vec_i32};
 
+/// # Day 1 #
 /// You're minding your own business on a ship at sea when the overboard alarm goes off!
 /// You rush to see if you can help. Apparently, one of the Elves tripped and accidentally
 /// sent the sleigh keys flying into the ocean!
@@ -23,16 +24,16 @@ use crate::{read_from_data_dir, string_to_vec_i32};
 ///
 /// For example, suppose you had the following report:
 /// ```text
-/// // 199
-/// // 200
-/// // 208
-/// // 210
-/// // 200
-/// // 207
-/// // 240
-/// // 269
-/// // 260
-/// // 263
+/// 199
+/// 200
+/// 208
+/// 210
+/// 200
+/// 207
+/// 240
+/// 269
+/// 260
+/// 263
 /// ```
 /// This report indicates that, scanning outward from the submarine, the sonar sweep found
 /// depths of 199, 200, 208, 210, and so on.
@@ -61,44 +62,6 @@ use crate::{read_from_data_dir, string_to_vec_i32};
 /// In this example, there are 7 measurements that are larger than the previous measurement.
 ///
 /// How many measurements are larger than the previous measurement?
-///
-/// -- Part 2 --
-///
-/// Considering every single measurement isn't as useful as you expected: there's just too much noise in the data.
-///
-/// Instead, consider sums of a three-measurement sliding window. Again considering the above example:
-///
-/// 199  A      
-/// 200  A B    
-/// 208  A B C  
-/// 210    B C D
-/// 200  E   C D
-/// 207  E F   D
-/// 240  E F G  
-/// 269    F G H
-/// 260      G H
-/// 263        H
-/// Start by comparing the first and second three-measurement windows. The measurements in the first window are marked A (199, 200, 208); their sum is 199 + 200 + 208 = 607. The second window is marked B (200, 208, 210); its sum is 618. The sum of measurements in the second window is larger than the sum of the first, so this first comparison increased.
-///
-/// Your goal now is to count the number of times the sum of measurements in this sliding window increases from the previous sum. So, compare A with B, then compare B with C, then C with D, and so on. Stop when there aren't enough measurements left to create a new three-measurement sum.
-///
-/// In the above example, the sum of each three-measurement window is as follows:
-///
-/// ```
-/// A: 607 (N/A - no previous sum)
-/// B: 618 (increased)
-/// C: 618 (no change)
-/// D: 617 (decreased)
-/// E: 647 (increased)
-/// F: 716 (increased)
-/// G: 769 (increased)
-/// H: 792 (increased)
-///
-/// ```
-/// In this example, there are 5 sums that are larger than the previous sum.
-///
-/// Consider sums of a three-measurement sliding window. How many sums are larger than the previous sum?
-///
 pub fn part1() {
     println!("Here in day1_1");
 
@@ -108,6 +71,16 @@ pub fn part1() {
     println!("The answer for day 1, part 1 is {}", answer);
 }
 
+/// Compares the number of increases of the previous measurement and the current
+/// ## Example ##
+/// if the depths were 1,8,0,2,6,
+/// ```text
+/// 1 > 8 (increase)
+/// 8 > 0 (decrease)
+/// 0 > 2 (increase)
+/// 2 > 6 (increase)
+/// ```
+/// So for this example, there would be `3` increases
 fn sonar_sweep(depths: Vec<i32>) -> i32 {
     let mut count = 0;
     for (pos, _) in depths.iter().enumerate() {
@@ -121,6 +94,45 @@ fn sonar_sweep(depths: Vec<i32>) -> i32 {
     count
 }
 
+/// ## -- Part 2 -- ##
+///
+/// Considering every single measurement isn't as useful as you expected: there's just too much noise in the data.
+///
+/// Instead, consider sums of a three-measurement sliding window. Again considering the above example:
+/// ```text
+/// 199  A      
+/// 200  A B    
+/// 208  A B C  
+/// 210    B C D
+/// 200  E   C D
+/// 207  E F   D
+/// 240  E F G  
+/// 269    F G H
+/// 260      G H
+/// 263        H
+/// ```
+/// Start by comparing the first and second three-measurement windows. The measurements in the first window are marked A (199, 200, 208); their sum is 199 + 200 + 208 = 607. The second window is marked B (200, 208, 210); its sum is 618. The sum of measurements in the second window is larger than the sum of the first, so this first comparison increased.
+///
+/// Your goal now is to count the number of times the sum of measurements in this sliding window increases from the previous sum. So, compare A with B, then compare B with C, then C with D, and so on. Stop when there aren't enough measurements left to create a new three-measurement sum.
+///
+/// In the above example, the sum of each three-measurement window is as follows:
+///
+/// ```
+/// // A: 607 (N/A - no previous sum)
+/// // B: 618 (increased)
+/// // C: 618 (no change)
+/// // D: 617 (decreased)
+/// // E: 647 (increased)
+/// // F: 716 (increased)
+/// // G: 769 (increased)
+/// // H: 792 (increased)
+/// let v: Vec<i32> = vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263];
+/// let ans: i32 = rolling_sonar_sweep(v);
+/// assert_eq!(ans, 5);
+/// ```
+/// In this example, there are 5 sums that are larger than the previous sum.
+///
+/// Consider sums of a three-measurement sliding window. How many sums are larger than the previous sum?
 pub fn part2() {
     let data = read_from_data_dir("day1.txt").unwrap();
     let vec_ints = string_to_vec_i32(data).unwrap();
@@ -128,6 +140,15 @@ pub fn part2() {
     println!("The answer for day 1, part 2 is {}", answer);
 }
 
+/// Compares the number of increases of the previous window and the current window
+/// ## Example ##
+/// if the depths were 1,8,0,2,6, and the window was 3, the the sum of the windows would be
+/// ```text
+/// 1+8+0 = 9
+/// 8+0+2 = 10
+/// 0+2+6 = 8
+/// ```
+/// So for this example, there would be `1` increase (from 9 to 10)
 fn rolling_sonar_sweep(depths: Vec<i32>) -> i32 {
     let mut count = 0;
     let mut prev = 0;
