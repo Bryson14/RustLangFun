@@ -9,16 +9,17 @@ pub fn read_from_data_dir(filename: &str) -> Result<String, String> {
     Ok(output)
 }
 
-pub fn parse_strs_to_ints(data: Vec<String>) -> Result<Vec<i32, _>> {
-    let data: Vec<i32> = data
-        .split(" ")
-        .map(|x| x.trim().parse().expect("Wrong number format"))
+pub fn string_to_vec_i32(s: String) -> Result<Vec<i32>, std::string::ParseError> {
+    let output: Vec<i32> = s
+        .lines()
+        .map(|x| x.parse().expect("oh no, bad parsing"))
         .collect();
+    Ok(output)
 }
 
 #[cfg(test)]
 mod test {
-    use super::read_from_data_dir;
+    use super::{read_from_data_dir, string_to_vec_i32};
 
     #[test]
     fn test_good_file() {
@@ -33,5 +34,34 @@ mod test {
     }
 
     #[test]
-    fn test_parse_vec() {}
+    fn test_parse_vec() {
+        let s = String::from("1\r\n2\r\n3");
+        let ans: Vec<i32> = string_to_vec_i32(s).unwrap();
+        assert_eq!(ans, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_parse_vec2() {
+        let s = String::from("1\n2\n3");
+        let ans: Vec<i32> = string_to_vec_i32(s).unwrap();
+        assert_eq!(ans, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_parse_vec3() {
+        let s = String::from("1\n2\r\n3");
+        let ans: Vec<i32> = string_to_vec_i32(s).unwrap();
+        assert_eq!(ans, vec![1, 2, 3]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_parse_vec_bad() {
+        let s = String::from("1\r\n2\r\n3\nba");
+        let ans = string_to_vec_i32(s);
+        match ans {
+            Ok(_) => unreachable!(),
+            Err(_e) => assert_eq!(true, true),
+        }
+    }
 }
