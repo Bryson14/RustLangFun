@@ -51,7 +51,96 @@ use crate::read_from_data_dir;
 /// The score of the winning board can now be calculated. Start by finding the sum of all unmarked numbers on that board; in this case, the sum is 188. Then, multiply that sum by the number that was just called when the board won, 24, to get the final score, 188 * 24 = 4512.
 ///
 /// To guarantee victory against the giant squid, figure out which board will win first. What will your final score be if you choose that board?
-pub fn part1() {}
+pub fn part1() {
+    let game_info = read_from_data_dir("day4.txt").unwrap();
+    let (instructions, bingo_boards) = parse_game_info(game_info);
+
+    // play the game
+    let mut called_nums: Vec<u8> = Vec::new();
+    'outer: for num in instructions {
+        called_nums.push(num);
+
+        for board in &bingo_boards {
+            match board.winning_line(&called_nums) {
+                Some(v) => {
+                    println!("winner: {:?}", v);
+                    break 'outer;
+                }
+                None => (),
+            }
+        }
+    }
+}
+
+fn parse_game_info(s: String) -> (Vec<u8>, Vec<BingoBoard>) {
+    (vec![0], vec![BingoBoard::new()])
+}
+
+struct BingoBoard {
+    board: [[u8; 5]; 5],
+}
+
+impl BingoBoard {
+    fn new() -> Self {
+        BingoBoard { board: [[0; 5]; 5] }
+    }
+
+    fn winning_line(&self, called_nums: &Vec<u8>) -> Option<[u8; 5]> {
+        let mut all_called = true;
+        let mut winning_col = [0u8; 5];
+
+        for col in 0..self.board[0].len() {
+            // check rows and cols
+            for row in self.board {
+                if row.iter().any(|x| !called_nums.contains(&x)) {
+                    println!("The right row: {:?}", row);
+                    return Some(row);
+                }
+
+                // checking cols
+                if called_nums.contains(&row[col]) {
+                    winning_col[col] = row[col];
+                } else {
+                    all_called = false;
+                }
+            }
+
+            if all_called {
+                println!("the right col: {:?}", winning_col);
+                return Some(winning_col);
+            }
+        }
+
+        // checking diagonal
+        let mut right_diagonal = true;
+        let mut right_diagonal_nums = [0u8; 5];
+        let mut left_diagonal = true;
+        let mut left_diagonal_nums = [0u8; 5];
+        for i in 0..self.board[0].len() {
+            left_diagonal_nums[i] = self.board[i][i];
+            if !called_nums.contains(&self.board[i][i]) {
+                left_diagonal = false;
+            }
+            let vert = self.board.len() - 1 - i;
+            right_diagonal_nums[i] = self.board[i][vert];
+            if !called_nums.contains(&self.board[i][vert]) {
+                right_diagonal = false;
+            }
+        }
+
+        if left_diagonal {
+            println!("Left diag: {:?}", left_diagonal_nums);
+            return Some(left_diagonal_nums);
+        }
+
+        if right_diagonal {
+            println!("right diag: {:?}", right_diagonal_nums);
+            return Some(right_diagonal_nums);
+        }
+
+        None
+    }
+}
 
 pub fn part2() {}
 
@@ -60,7 +149,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_movement_without_aim() {}
+    fn test_parse_game_info() {}
 
     #[test]
     fn test_movement_with_aim() {}
