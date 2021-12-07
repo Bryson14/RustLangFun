@@ -35,7 +35,7 @@ pub fn part1() {
     let (depth, horizontal) = movement_without_aim(data);
 
     println!(
-        "The answer to day 2, part 1 is depth = {} and horizontal movement = {}\n Multiplied is {}",
+        "Day2:1 The answer to day 2, part 1 is depth = {} and horizontal movement = {} Multiplied is {}",
         depth,
         horizontal,
         depth * horizontal
@@ -100,7 +100,7 @@ pub fn part2() {
     let (depth, horizontal) = movement_with_aim(data);
 
     println!(
-        "The answer to day 2, part 2 is depth = {} and horizontal movement = {}\n Multiplied is {}",
+        "Day2:2. depth = {} and horizontal movement = {} Multiplied is {}",
         depth,
         horizontal,
         depth * horizontal

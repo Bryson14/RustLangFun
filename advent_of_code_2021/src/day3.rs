@@ -39,7 +39,7 @@ pub fn part1() {
     let (gamma, epsilon) = binary_diagnostic_1(binary_strings);
 
     println!(
-        "The answer to day 3, part 1 is gamma = {} and epsilon = {}\n Multiplied is {}",
+        "Day3:1 gamma = {} and epsilon = {} Multiplied is {}",
         gamma,
         epsilon,
         gamma * epsilon
@@ -111,25 +111,80 @@ fn binary_diagnostic_1(binary: Vec<&str>) -> (isize, isize) {
 pub fn part2() {
     let data = read_from_data_dir("day3.txt").unwrap();
     let binary_strings: Vec<&str> = data.lines().collect();
-    let (gamma, epsilon) = binary_diagnostic_1(binary_strings);
+    let (o2_rating, co2_rating) = oxygen_co2_scrubber_ratings(binary_strings);
 
     println!(
-        "The answer to day 3, part 2 is gamma = {} and epsilon = {}\n Multiplied is {}",
-        gamma,
-        epsilon,
-        gamma * epsilon
+        "Day3:2. oxygen rating = {} and co2 scrubber rating = {} Multiplied is {}",
+        o2_rating,
+        co2_rating,
+        o2_rating * co2_rating
     );
 }
 
-fn oxygen_CO2_scrubber_ratings(binary: Vec<&str>) -> (i32, i32) {
-    let mut most_popular = 0;
-    let filtered = binary.clone();
+fn oxygen_co2_scrubber_ratings(binary: Vec<&str>) -> (isize, isize) {
+    let mut oxygen_rating = String::new();
+    let mut co2_scrubber = String::new();
+    let mut filtered = binary.clone();
 
+    // finding oxygen rating. None means to choose '1' at ith position
     for i in 0..binary[0].len() {
-        let ones_count = filtered.iter().filter(|s| s.starts_with("1")).count();
+        match get_most_common(&filtered, i) {
+            Some(1) | None => oxygen_rating.push('1'),
+            Some(0) => oxygen_rating.push('0'),
+            _ => unreachable!(),
+        };
+
+        filtered = filtered
+            .iter()
+            .filter(|&&s| s.starts_with(&oxygen_rating))
+            .map(|&x| x)
+            .collect();
+
+        if filtered.len() == 1 {
+            oxygen_rating = String::from(filtered[0]);
+            break;
+        }
     }
 
-    (5, 5)
+    // finding CO2 scrubber rating. None means to choose '0' at ith position
+    let mut filtered = binary.clone();
+    for i in 0..binary[0].len() {
+        match get_most_common(&filtered, i) {
+            Some(1) | None => co2_scrubber.push('0'),
+            Some(0) => co2_scrubber.push('1'),
+            _ => unreachable!(),
+        };
+
+        filtered = filtered
+            .iter()
+            .filter(|&&s| s.starts_with(&co2_scrubber))
+            .map(|&x| x)
+            .collect();
+
+        if filtered.len() == 1 {
+            co2_scrubber = String::from(filtered[0]);
+            break;
+        }
+    }
+    (
+        isize::from_str_radix(&oxygen_rating, 2).unwrap(),
+        isize::from_str_radix(&co2_scrubber, 2).unwrap(),
+    )
+}
+
+fn get_most_common(binary: &Vec<&str>, idx: usize) -> Option<i32> {
+    let ones_count = binary
+        .iter()
+        .filter(|s| s.chars().nth(idx).unwrap() == '1')
+        .count();
+
+    if ones_count == binary.len() / 2 && binary.len() % 2 == 0 {
+        None
+    } else if ones_count > binary.len() / 2 {
+        Some(1)
+    } else {
+        Some(0)
+    }
 }
 
 #[cfg(test)]
@@ -146,11 +201,26 @@ mod tests {
     }
 
     #[test]
-    fn test_oxygen_CO2_scrubber_ratings() {
+    fn test_oxygen_co2_scrubber_ratings() {
         let data =
             "00100\n11110\n10110\n10111\n10101\n01111\n00111\n11100\n10000\n11001\n00010\n01010";
-        let (o2, co2) = oxygen_CO2_scrubber_ratings(data.lines().collect());
+        let (o2, co2) = oxygen_co2_scrubber_ratings(data.lines().collect());
         assert_eq!(o2, 23);
         assert_eq!(co2, 10);
+    }
+
+    #[test]
+    fn test_get_most_common() {
+        let data = vec!["00100", "01111", "00111", "00010", "01010"];
+        assert_eq!(get_most_common(&data, 1), Some(0));
+        assert_eq!(get_most_common(&data, 0), Some(0));
+    }
+
+    #[test]
+    fn test_get_most_common_2() {
+        let data = vec!["11111", "00000", "11111", "11110"];
+        assert_eq!(get_most_common(&data, 1), Some(1));
+        assert_eq!(get_most_common(&data, 0), Some(1));
+        assert_eq!(get_most_common(&data, 4), None);
     }
 }

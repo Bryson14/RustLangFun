@@ -1,5 +1,13 @@
 use std::fs::read_to_string;
-
+/// The project is set up as follows...
+/// ```text
+/// C:.
+/// ├───.vscode
+/// ├───data
+/// ├───src
+/// └───target
+/// ```
+/// All the modules are under source, and `read_from_data_dir` provides an easy way to read in text data from the data folder.
 pub fn read_from_data_dir(filename: &str) -> Result<String, String> {
     let data_file = format!("../advent_of_code_2021/data/{}", filename);
     let output = match read_to_string(data_file) {
@@ -9,6 +17,8 @@ pub fn read_from_data_dir(filename: &str) -> Result<String, String> {
     Ok(output)
 }
 
+/// This turns a String from a line separated .txt file into a vector of numbers
+/// i.e. "1\n2\n3\n" -> Vec[1,2,3]
 pub fn string_to_vec_i32(s: String) -> Result<Vec<i32>, std::string::ParseError> {
     let output: Vec<i32> = s
         .lines()

@@ -63,12 +63,10 @@ use crate::{read_from_data_dir, string_to_vec_i32};
 ///
 /// How many measurements are larger than the previous measurement?
 pub fn part1() {
-    println!("Here in day1_1");
-
     let data = read_from_data_dir("day1.txt").unwrap();
     let vec_ints = string_to_vec_i32(data).unwrap();
     let answer = sonar_sweep(vec_ints);
-    println!("The answer for day 1, part 1 is {}", answer);
+    println!("Day1:1. The answer for day 1, part 1 is {}", answer);
 }
 
 /// Compares the number of increases of the previous measurement and the current
@@ -137,7 +135,7 @@ pub fn part2() {
     let data = read_from_data_dir("day1.txt").unwrap();
     let vec_ints = string_to_vec_i32(data).unwrap();
     let answer = rolling_sonar_sweep(vec_ints);
-    println!("The answer for day 1, part 2 is {}", answer);
+    println!("Day1:2. The answer for day 1, part 2 is {}", answer);
 }
 
 /// Compares the number of increases of the previous window and the current window
