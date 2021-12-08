@@ -62,8 +62,12 @@ pub fn part1() {
 
         for board in &bingo_boards {
             match board.winning_line(&called_nums) {
-                Some(v) => {
-                    println!("winner: {:?}", v);
+                Some((winning_line, sum_unused)) => {
+                    println!(
+                        "Day4:1 Answer is {}. Winning line was {:?}",
+                        sum_unused * num as i32,
+                        winning_line
+                    );
                     break 'outer;
                 }
                 None => (),
@@ -72,42 +76,95 @@ pub fn part1() {
     }
 }
 
+/// Takes the text input and turns it into bingo boards and instrcutions
+/// The text is guarenteed to follow the format:
+/// ```text
+/// 1,2,3,4,5,6.... (instructions)
+///
+/// 9 54 32 10 7
+/// 98 12 4 7 6
+/// 3 5 12 6 4
+/// 84 5 12 11 3
+/// 9 65 32 82 6
+///
+/// ... (more game boards)
+/// ```
 fn parse_game_info(s: String) -> (Vec<u8>, Vec<BingoBoard>) {
-    (vec![0], vec![BingoBoard::new()])
+    let mut lines = s.lines();
+    let instructions: Vec<u8> = lines
+        .next()
+        .unwrap()
+        .split(",")
+        .map(|num| num.trim().parse().expect("Bad Number"))
+        .collect();
+
+    let mut boards: Vec<BingoBoard> = Vec::new();
+    let mut board = BingoBoard::new();
+    let mut current_row = 0;
+
+    for line in lines {
+        if line.len() < 4 {
+            continue;
+        }
+        let row: Vec<u8> = line
+            .split(" ")
+            .map(|s| s.trim())
+            .filter(|s| s.len() > 0)
+            .map(|s| s.parse().expect("Bad Number"))
+            .collect();
+
+        for i in 0..5 {
+            board.board[current_row][i] = row[i];
+        }
+        current_row += 1;
+
+        if current_row >= 5 {
+            current_row = 0;
+            boards.push(board.clone());
+            board = BingoBoard::new();
+        }
+    }
+
+    (instructions, boards)
 }
 
+#[derive(Clone, Debug, PartialEq)]
 struct BingoBoard {
     board: [[u8; 5]; 5],
 }
 
+/// A bingo board represented as a 5x5 array. It has a function call winning_line
+/// that checks if the board has won based on the called numbers, then returns
+/// the winning line that won in the array.
 impl BingoBoard {
     fn new() -> Self {
         BingoBoard { board: [[0; 5]; 5] }
     }
 
-    fn winning_line(&self, called_nums: &Vec<u8>) -> Option<[u8; 5]> {
-        let mut all_called = true;
-        let mut winning_col = [0u8; 5];
+    // returns the winning line and the sum of the unused numbers
+    fn winning_line(&self, called_nums: &Vec<u8>) -> Option<([u8; 5], i32)> {
+        // checking rows
+        for row in self.board {
+            if row.iter().all(|x| called_nums.contains(&x)) {
+                println!("Winning board: {:?}", self.board);
+                return Some((row, self.sum_of_unused_numbers(row)));
+            }
+        }
 
         for col in 0..self.board[0].len() {
-            // check rows and cols
-            for row in self.board {
-                if row.iter().any(|x| !called_nums.contains(&x)) {
-                    println!("The right row: {:?}", row);
-                    return Some(row);
-                }
-
-                // checking cols
-                if called_nums.contains(&row[col]) {
-                    winning_col[col] = row[col];
+            let mut winning_col: [u8; 5] = [0; 5];
+            let mut all_called = true;
+            for row in 0..self.board.len() {
+                if called_nums.contains(&self.board[row][col]) {
+                    winning_col[row] = self.board[row][col];
                 } else {
                     all_called = false;
                 }
             }
 
             if all_called {
-                println!("the right col: {:?}", winning_col);
-                return Some(winning_col);
+                println!("Winning board: {:?}", self.board);
+                return Some((winning_col, self.sum_of_unused_numbers(winning_col)));
             }
         }
 
@@ -129,16 +186,34 @@ impl BingoBoard {
         }
 
         if left_diagonal {
-            println!("Left diag: {:?}", left_diagonal_nums);
-            return Some(left_diagonal_nums);
+            println!("Winning board: {:?}", self.board);
+            return Some((
+                left_diagonal_nums,
+                self.sum_of_unused_numbers(left_diagonal_nums),
+            ));
         }
 
         if right_diagonal {
-            println!("right diag: {:?}", right_diagonal_nums);
-            return Some(right_diagonal_nums);
+            println!("Winning board: {:?}", self.board);
+            return Some((
+                right_diagonal_nums,
+                self.sum_of_unused_numbers(right_diagonal_nums),
+            ));
         }
 
         None
+    }
+
+    fn sum_of_unused_numbers(&self, winning_numbers: [u8; 5]) -> i32 {
+        let mut total: i32 = 0;
+        for row in self.board.iter() {
+            total += row
+                .iter()
+                .filter(|x| !winning_numbers.contains(x))
+                .map(|&n| n as i32)
+                .sum::<i32>()
+        }
+        total
     }
 }
 
@@ -149,8 +224,77 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_game_info() {}
+    fn test_winning_line() {
+        let mut board = BingoBoard::new();
+        for i in 0..=4 {
+            board.board[0][i] = (i + 1) as u8;
+        }
+        println!("board: {:?}", board.board);
+        let called_nums = vec![1, 2, 3, 4, 5];
+        assert_eq!(
+            board.winning_line(&called_nums),
+            Some([1u8, 2u8, 3u8, 4u8, 5u8])
+        );
+    }
 
     #[test]
-    fn test_movement_with_aim() {}
+    fn test_winning_line_col() {
+        let mut board = BingoBoard::new();
+        for i in 0..=4 {
+            board.board[i][0] = (i + 1) as u8;
+        }
+        println!("board: {:?}", board.board);
+        let called_nums = vec![1, 2, 3, 4, 5];
+        assert_eq!(
+            board.winning_line(&called_nums),
+            Some([1u8, 2u8, 3u8, 4u8, 5u8])
+        );
+    }
+
+    #[test]
+    fn test_winning_line_diag() {
+        let mut board = BingoBoard::new();
+        for i in 0..=4 {
+            board.board[i][i] = (i + 1) as u8;
+        }
+        println!("board: {:?}", board.board);
+        let called_nums = vec![1, 2, 3, 4, 5];
+        assert_eq!(
+            board.winning_line(&called_nums),
+            Some([1u8, 2u8, 3u8, 4u8, 5u8])
+        );
+    }
+
+    #[test]
+    fn test_winning_line_left_diag() {
+        let mut board = BingoBoard::new();
+        for i in 0..=4 {
+            board.board[4 - i][i] = (i + 1) as u8;
+        }
+        println!("board: {:?}", board.board);
+        let called_nums = vec![1, 2, 3, 4, 5];
+        assert_eq!(
+            board.winning_line(&called_nums),
+            Some([5u8, 4u8, 3u8, 2u8, 1u8])
+        );
+    }
+
+    #[test]
+    fn test_parse_game_info() {
+        let s: String = String::from(
+            "1,2,3,4,5,6,7,8,9,10\n\n8 3 12 47 65\n 6 8 5 3 2\n9 15 48 75 42\n32 14 56 8 3\n
+            87 96 52 11 1\n\n8 3 12 47 65\n 6 8 5 3 2\n9 15 48 75 42\n32 14 56 8 3\n87 96 52 11 1\n"
+        );
+        let (instructions, boards) = parse_game_info(s);
+        assert_eq!(instructions, vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        let b: [[u8; 5]; 5] = [
+            [8, 3, 12, 47, 65],
+            [6, 8, 5, 3, 2],
+            [9, 15, 48, 75, 42],
+            [32, 14, 56, 8, 3],
+            [87, 96, 52, 11, 1],
+        ];
+        assert_eq!(boards[0].board, b);
+        assert_eq!(boards[1].board, b);
+    }
 }
