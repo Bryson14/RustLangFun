@@ -232,8 +232,8 @@ mod tests {
         println!("board: {:?}", board.board);
         let called_nums = vec![1, 2, 3, 4, 5];
         assert_eq!(
-            board.winning_line(&called_nums),
-            Some([1u8, 2u8, 3u8, 4u8, 5u8])
+            board.winning_line(&called_nums).unwrap().0,
+            [1u8, 2u8, 3u8, 4u8, 5u8]
         );
     }
 
@@ -246,8 +246,8 @@ mod tests {
         println!("board: {:?}", board.board);
         let called_nums = vec![1, 2, 3, 4, 5];
         assert_eq!(
-            board.winning_line(&called_nums),
-            Some([1u8, 2u8, 3u8, 4u8, 5u8])
+            board.winning_line(&called_nums).unwrap().0,
+            [1u8, 2u8, 3u8, 4u8, 5u8]
         );
     }
 
@@ -260,8 +260,8 @@ mod tests {
         println!("board: {:?}", board.board);
         let called_nums = vec![1, 2, 3, 4, 5];
         assert_eq!(
-            board.winning_line(&called_nums),
-            Some([1u8, 2u8, 3u8, 4u8, 5u8])
+            board.winning_line(&called_nums).unwrap().0,
+            [1u8, 2u8, 3u8, 4u8, 5u8]
         );
     }
 
@@ -274,8 +274,8 @@ mod tests {
         println!("board: {:?}", board.board);
         let called_nums = vec![1, 2, 3, 4, 5];
         assert_eq!(
-            board.winning_line(&called_nums),
-            Some([5u8, 4u8, 3u8, 2u8, 1u8])
+            board.winning_line(&called_nums).unwrap().0,
+            [5u8, 4u8, 3u8, 2u8, 1u8]
         );
     }
 

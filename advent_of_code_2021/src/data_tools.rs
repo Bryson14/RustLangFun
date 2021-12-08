@@ -18,7 +18,7 @@ pub fn read_from_data_dir(filename: &str) -> Result<String, String> {
 }
 
 /// This turns a String from a line separated .txt file into a vector of numbers
-/// i.e. "1\n2\n3\n" -> Vec[1,2,3]
+/// // assert_eq!(string_to_vec_i32(String::from("1\n2\r\n3")).unwrap(), vec![1, 2, 3]);
 pub fn string_to_vec_i32(s: String) -> Result<Vec<i32>, std::string::ParseError> {
     let output: Vec<i32> = s
         .lines()
