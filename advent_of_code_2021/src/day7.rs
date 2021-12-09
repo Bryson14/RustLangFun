@@ -75,12 +75,18 @@ fn movement_cost_linear(distance: i32) -> i32 {
 /// 3 -> 6
 /// ...
 /// ```
+/// A closed form equation has sped up the function and replace the iterative form
+/// cost = (x^2 + x) / 2
 fn movement_cost_increment_one(distance: i32) -> i32 {
-    let mut cost = 0;
-    for step in 0..=distance {
-        cost += step;
-    }
-    cost
+    // slow, iterative form
+    // let mut cost = 0;
+    // for step in 0..=distance {
+    //     cost += step;
+    // }
+    // cost
+
+    // closed form equation
+    (distance * distance + distance) / 2
 }
 
 /// # --- Part Two ---
