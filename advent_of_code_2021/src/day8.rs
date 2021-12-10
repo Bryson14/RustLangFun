@@ -85,7 +85,7 @@ pub fn part1() {
 
 /// helps to identify which wires correspond to which numbers
 /// For example, `1` is the only digit that uses two wires (c, f)
-/// so if i pass in ['c', 'f'] into this function, it should return [1]
+/// so if i pass in ['c', 'f'] into this function, it should return `1`
 /// Assumes that all `char`s in wires are unique
 fn categorize_wires(wires: String) -> Vec<u8> {
     let answer: Vec<u8> = match wires.len() {
