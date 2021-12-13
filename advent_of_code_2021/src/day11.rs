@@ -327,18 +327,16 @@ pub fn part1() {
         grid: string_to_map(data),
         flashes: 0,
     };
-    let steps = 2;
+    let steps = 100;
 
-    for step in 0..steps {
+    for _step in 0..steps {
         octo_grid.simulate_time_step();
-
-        println!(
-            "The map after {} steps an {} flashes.\n{:?}",
-            step + 1,
-            octo_grid.flashes,
-            octo_grid.grid
-        );
     }
+
+    println!(
+        "Day11:1. After 100 Steps, there have been {} flashes.",
+        octo_grid.flashes
+    );
 }
 
 /// holds the grid and flashes
@@ -351,8 +349,8 @@ impl OctopusGrid {
     /// increments everything in the grid by one
     fn increment_all(&mut self) {
         self.grid.iter_mut().for_each(|row| {
-            row.iter_mut().for_each(|&mut num| {
-                let _ = num + 1;
+            row.iter_mut().for_each(|num| {
+                *num += 1;
             })
         });
     }
@@ -367,9 +365,9 @@ impl OctopusGrid {
     /// checks if any of the octopuses are over 9, the energy threshold
     fn count_flashes(&mut self) {
         let energy_threshold = 9;
-        let mut not_flashed = true;
+        let mut not_finished = true;
 
-        while not_flashed {
+        while not_finished {
             // iterates the entire grid and flashes the octopus if over a level,
             // sets the octopus to -1, and increments its neighbors
             for row in 0..self.grid.len() {
@@ -382,7 +380,7 @@ impl OctopusGrid {
                 }
             }
             // checks to see if any octopuses still over the threshold that haven't been flashed
-            not_flashed = self
+            not_finished = self
                 .grid
                 .iter()
                 .any(|row| row.iter().any(|&val| val > energy_threshold));
@@ -447,8 +445,15 @@ impl OctopusGrid {
         };
 
         for (row, col) in positions {
-            self.grid[row][col] += 1;
+            if self.grid[row][col] != -1 {
+                self.grid[row][col] += 1;
+            }
         }
+    }
+
+    /// returns true if all the grid is at energy level 0. Meaning they all just flashed.
+    fn all_just_flashed(&self) -> bool {
+        self.grid.iter().all(|row| row.iter().all(|&val| val == 0))
     }
 }
 
@@ -462,9 +467,64 @@ fn string_to_map(data: String) -> Vec<Vec<i32>> {
         .collect::<Vec<Vec<i32>>>()
 }
 
+/// # --- Part Two ---
+/// It seems like the individual flashes aren't bright enough to navigate. However, you might have a better option: the flashes seem to be synchronizing!
+///
+/// In the example above, the first time all octopuses flash simultaneously is step 195:
+///
+/// After step 193:
+/// 5877777777
+/// 8877777777
+/// 7777777777
+/// 7777777777
+/// 7777777777
+/// 7777777777
+/// 7777777777
+/// 7777777777
+/// 7777777777
+/// 7777777777
+///
+/// After step 194:
+/// 6988888888
+/// 9988888888
+/// 8888888888
+/// 8888888888
+/// 8888888888
+/// 8888888888
+/// 8888888888
+/// 8888888888
+/// 8888888888
+/// 8888888888
+///
+/// After step 195:
+/// 0000000000
+/// 0000000000
+/// 0000000000
+/// 0000000000
+/// 0000000000
+/// 0000000000
+/// 0000000000
+/// 0000000000
+/// 0000000000
+/// 0000000000
+/// If you can calculate the exact moments when the octopuses will all flash simultaneously, you should be able to navigate through the cavern. What is the first step during which all octopuses flash?
 pub fn part2() {
     let data = read_from_data_dir("day11.txt").unwrap();
-    let map = string_to_map(data);
+    let mut octo_grid = OctopusGrid {
+        grid: string_to_map(data),
+        flashes: 0,
+    };
+    let mut steps = 0;
+
+    while !octo_grid.all_just_flashed() {
+        octo_grid.simulate_time_step();
+        steps += 1;
+    }
+
+    println!(
+        "Day11:2. After {} steps, all the octopuses just flashed at once!",
+        steps
+    );
 }
 
 #[cfg(test)]
@@ -482,13 +542,14 @@ mod tests {
     #[test]
     fn test_increment_all() {
         let starting_grid = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
+        let ending_grid = vec![vec![2, 3, 4], vec![5, 6, 7], vec![8, 9, 10]];
         let mut octo_grid = OctopusGrid {
-            grid: starting_grid.clone(),
+            grid: starting_grid,
             flashes: 0,
         };
         octo_grid.increment_all();
 
-        assert_eq!(starting_grid, octo_grid.grid);
+        assert_eq!(octo_grid.grid, ending_grid);
     }
 
     #[test]
@@ -515,6 +576,7 @@ mod tests {
         octo_grid.simulate_time_step();
 
         assert_eq!(octo_grid.grid, end_grid);
+        assert_eq!(octo_grid.flashes, 9);
     }
 
     #[test]
@@ -541,6 +603,7 @@ mod tests {
         octo_grid.simulate_time_step();
 
         assert_eq!(octo_grid.grid, end_grid);
+        assert_eq!(octo_grid.flashes, 0);
     }
 
     #[test]

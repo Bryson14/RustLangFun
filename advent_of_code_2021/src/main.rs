@@ -11,6 +11,8 @@ mod day9;
 
 mod day10;
 mod day11;
+mod day12;
+mod day13;
 
 use data_tools::{read_from_data_dir, string_to_vec_i32};
 
@@ -59,13 +61,13 @@ fn main() {
     day11::part1();
     day11::part2();
 
-    // // # Day 12
-    // day12::part1();
-    // day12::part2();
+    // # Day 12
+    day12::part1();
+    day12::part2();
 
-    // // # Day 13
-    // day13::part1();
-    // day13::part2();
+    // # Day 13
+    day13::part1();
+    day13::part2();
 
     // // # Day 14
     // day14::part1();
