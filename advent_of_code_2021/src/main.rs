@@ -13,6 +13,7 @@ mod day10;
 mod day11;
 mod day12;
 mod day13;
+mod day14;
 
 use data_tools::{read_from_data_dir, string_to_vec_i32};
 
@@ -123,11 +124,13 @@ fn main() {
         println!("✅ Day 13 finished!")
     }
 
-    //    // # Day 14
-    //    if day14::is_complete() && print_complete || !day14::is_complete() {
-    //         day14::part1();
-    //        day14::part2();
-    //    }  else { println!("✅ Day 14 finished!") }
+    // # Day 14
+    if day14::is_complete() && print_complete || !day14::is_complete() {
+        day14::part1();
+        day14::part2();
+    } else {
+        println!("✅ Day 14 finished!")
+    }
 
     //    // # Day 15
     //    if day15::is_complete() && print_complete || !day15::is_complete() {
