@@ -76,7 +76,7 @@ pub fn part1() {
     }
 }
 
-/// Takes the text input and turns it into bingo boards and instrcutions
+/// Takes the text input and turns it into bingo boards and instructions
 /// The text is guarenteed to follow the format:
 /// ```text
 /// 1,2,3,4,5,6.... (instructions)
@@ -146,8 +146,7 @@ impl BingoBoard {
         // checking rows
         for row in self.board {
             if row.iter().all(|x| called_nums.contains(&x)) {
-                println!("Winning board: {:?}", self.board);
-                return Some((row, self.sum_of_unused_numbers(row)));
+                return Some((row, self.sum_of_unused_numbers(called_nums)));
             }
         }
 
@@ -163,8 +162,7 @@ impl BingoBoard {
             }
 
             if all_called {
-                println!("Winning board: {:?}", self.board);
-                return Some((winning_col, self.sum_of_unused_numbers(winning_col)));
+                return Some((winning_col, self.sum_of_unused_numbers(called_nums)));
             }
         }
 
@@ -186,41 +184,74 @@ impl BingoBoard {
         }
 
         if left_diagonal {
-            println!("Winning board: {:?}", self.board);
-            return Some((
-                left_diagonal_nums,
-                self.sum_of_unused_numbers(left_diagonal_nums),
-            ));
+            return Some((left_diagonal_nums, self.sum_of_unused_numbers(called_nums)));
         }
 
         if right_diagonal {
-            println!("Winning board: {:?}", self.board);
-            return Some((
-                right_diagonal_nums,
-                self.sum_of_unused_numbers(right_diagonal_nums),
-            ));
+            return Some((right_diagonal_nums, self.sum_of_unused_numbers(called_nums)));
         }
 
         None
     }
 
-    fn sum_of_unused_numbers(&self, winning_numbers: [u8; 5]) -> i32 {
+    fn sum_of_unused_numbers(&self, called_nums: &Vec<u8>) -> i32 {
         let mut total: i32 = 0;
         for row in self.board.iter() {
             total += row
                 .iter()
-                .filter(|x| !winning_numbers.contains(x))
+                .filter(|x| !called_nums.contains(x))
                 .map(|&n| n as i32)
-                .sum::<i32>()
+                .sum::<i32>();
         }
         total
     }
 }
 
-pub fn part2() {}
+/// # --- Part Two ---
+/// On the other hand, it might be wise to try a different strategy: let the giant squid win.
+///
+/// You aren't sure how many bingo boards a giant squid could play at once, so rather than waste time counting its arms, the safe thing to do is to figure out which board will win last and choose that one. That way, no matter which boards it picks, it will win for sure.
+///
+/// In the above example, the second board is the last to win, which happens after 13 is eventually called and its middle column is completely marked. If you were to keep playing until this point, the second board would have a sum of unmarked numbers equal to 148 for a final score of 148 * 13 = 1924.
+///
+/// Figure out which board will win last. Once it wins, what would its final score be?
+pub fn part2() {
+    let game_info = read_from_data_dir("day4.txt").unwrap();
+    let (instructions, bingo_boards) = parse_game_info(game_info);
+    let mut finished_boards: Vec<&BingoBoard> = Vec::new();
+
+    // play the game until the last board is won
+    let mut called_nums: Vec<u8> = Vec::new();
+    'outer: for num in instructions {
+        called_nums.push(num);
+
+        for board in &bingo_boards {
+            match board.winning_line(&called_nums) {
+                Some((winning_line, sum_unused)) => {
+                    // check to see if its the last board
+                    if finished_boards.len() == bingo_boards.len() - 1
+                        && !finished_boards.contains(&board)
+                    {
+                        println!(
+                            "Day4:2 Last board to win is {:?}. Answer is {}",
+                            winning_line,
+                            sum_unused * num as i32,
+                        );
+                        break 'outer;
+                    } else {
+                        if !finished_boards.contains(&board) {
+                            finished_boards.push(board);
+                        }
+                    }
+                }
+                None => (),
+            }
+        }
+    }
+}
 
 pub fn is_complete() -> bool {
-    false
+    true
 }
 
 #[cfg(test)]
@@ -300,5 +331,16 @@ mod tests {
         ];
         assert_eq!(boards[0].board, b);
         assert_eq!(boards[1].board, b);
+    }
+
+    #[test]
+    fn test_given_example() {
+        let data = read_from_data_dir("day4_test.txt").unwrap();
+        let (_instructions, grids) = parse_game_info(data);
+        let win = grids[2]
+            .winning_line(&vec![7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24])
+            .unwrap();
+        assert_eq!(win.0, [14, 21, 17, 24, 4]);
+        assert_eq!(win.1, 188);
     }
 }
