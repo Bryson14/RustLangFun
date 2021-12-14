@@ -108,7 +108,7 @@ pub fn part1() {
     let (positions_of_dots, list_of_cuts) =
         read_origami_paper(read_from_data_dir("day13.txt").unwrap());
     let origami_paper = OrgPaper::from_positions(positions_of_dots);
-    println!("paper: {}", origami_paper);
+    // println!("paper: {}", origami_paper);
 }
 
 fn read_origami_paper(s: String) -> (Vec<(i32, i32)>, Vec<Cut>) {
@@ -185,6 +185,10 @@ impl fmt::Display for OrgPaper {
 }
 
 pub fn part2() {}
+
+pub fn is_complete() -> bool {
+    false
+}
 
 #[cfg(test)]
 mod tests {

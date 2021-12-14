@@ -527,6 +527,10 @@ pub fn part2() {
     );
 }
 
+pub fn is_complete() -> bool {
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -129,6 +129,10 @@ fn movement_with_aim(instructions: String) -> (i32, i32) {
     (depth, horizontal)
 }
 
+pub fn is_complete() -> bool {
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::{movement_with_aim, movement_without_aim};

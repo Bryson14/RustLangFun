@@ -169,6 +169,10 @@ fn rolling_sonar_sweep(depths: Vec<i32>) -> i32 {
     count
 }
 
+pub fn is_complete() -> bool {
+    true
+}
+
 #[cfg(test)]
 mod test {
     use super::{rolling_sonar_sweep, sonar_sweep};

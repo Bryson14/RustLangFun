@@ -233,6 +233,10 @@ fn get_score_auto_complete(missing_bracket: char) -> i32 {
     };
 }
 
+pub fn is_complete() -> bool {
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

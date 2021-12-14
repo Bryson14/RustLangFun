@@ -34,7 +34,7 @@ pub fn part1() {
         })
         .collect();
     let low_points = find_low_points(map);
-    println!("low points: {:?}", low_points);
+    // println!("low points: {:?}", low_points);
 
     let ans: usize = low_points
         .iter()
@@ -94,6 +94,10 @@ fn find_low_points(heightmap: Vec<Vec<u8>>) -> Vec<Point> {
 }
 
 pub fn part2() {}
+
+pub fn is_complete() -> bool {
+    false
+}
 
 #[cfg(test)]
 mod tests {

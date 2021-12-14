@@ -120,6 +120,10 @@ pub fn part2() {
     println!("Day7:2 Fuel used: {} at position: {}", fuel, best_position);
 }
 
+pub fn is_complete() -> bool {
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -187,6 +187,10 @@ fn get_most_common(binary: &Vec<&str>, idx: usize) -> Option<i32> {
     }
 }
 
+pub fn is_complete() -> bool {
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

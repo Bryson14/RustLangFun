@@ -40,9 +40,18 @@ use crate::read_from_data_dir;
 /// To avoid the most dangerous areas, you need to determine the number of points where at least two lines overlap. In the above example, this is anywhere in the diagram with a 2 or larger - a total of 5 points.
 ///
 /// Consider only horizontal and vertical lines. At how many points do at least two lines overlap?
-pub fn part1() {}
+pub fn part1() {
+    let data = read_from_data_dir("day5.txt").unwrap();
+    println!("Day5:1. There are {} points of overlapping lines", 1);
+}
 
-pub fn part2() {}
+pub fn part2() {
+    let data = read_from_data_dir("day5.txt").unwrap();
+}
+
+pub fn is_complete() -> bool {
+    false
+}
 
 #[cfg(test)]
 mod tests {
