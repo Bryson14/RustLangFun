@@ -14,6 +14,17 @@ mod day11;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
+mod day16;
+mod day17;
+mod day18;
+mod day19;
+mod day20;
+
+mod day21;
+mod day22;
+mod day23;
+mod day24;
 
 use data_tools::{read_from_data_dir, string_to_vec_i32};
 
@@ -132,63 +143,83 @@ fn main() {
         println!("✅ Day 14 finished!")
     }
 
-    //    // # Day 15
-    //    if day15::is_complete() && print_complete || !day15::is_complete() {
-    //         day15::part1();
-    //        day15::part2();
-    //    }  else { println!("✅ Day 15 finished!") }
+    // # Day 15
+    if day15::is_complete() && print_complete || !day15::is_complete() {
+        day15::part1();
+        day15::part2();
+    } else {
+        println!("✅ Day 15 finished!")
+    }
 
-    //    // # Day 16
-    //    if day16::is_complete() && print_complete || !day16::is_complete() {
-    //         day16::part1();
-    //        day16::part2();
-    //    }  else { println!("✅ Day 16 finished!") }
+    // # Day 16
+    if day16::is_complete() && print_complete || !day16::is_complete() {
+        day16::part1();
+        day16::part2();
+    } else {
+        println!("✅ Day 16 finished!")
+    }
 
-    //    // # Day 17
-    //    if day17::is_complete() && print_complete || !day17::is_complete() {
-    //         day17::part1();
-    //        day17::part2();
-    //    }  else { println!("✅ Day 17 finished!") }
+    // # Day 17
+    if day17::is_complete() && print_complete || !day17::is_complete() {
+        day17::part1();
+        day17::part2();
+    } else {
+        println!("✅ Day 17 finished!")
+    }
 
-    //    // # Day 18
-    //    if day18::is_complete() && print_complete || !day18::is_complete() {
-    //         day18::part1();
-    //        day18::part2();
-    //    }  else { println!("✅ Day 18 finished!") }
+    // # Day 18
+    if day18::is_complete() && print_complete || !day18::is_complete() {
+        day18::part1();
+        day18::part2();
+    } else {
+        println!("✅ Day 18 finished!")
+    }
 
-    //    // # Day 19
-    //    if day19::is_complete() && print_complete || !day19::is_complete() {
-    //         day19::part1();
-    //        day19::part2();
-    //    }  else { println!("✅ Day 19 finished!") }
+    // # Day 19
+    if day19::is_complete() && print_complete || !day19::is_complete() {
+        day19::part1();
+        day19::part2();
+    } else {
+        println!("✅ Day 19 finished!")
+    }
 
-    //    // # Day 20
-    //    if day20::is_complete() && print_complete || !day20::is_complete() {
-    //         day20::part1();
-    //        day20::part2();
-    //    }  else { println!("✅ Day 20 finished!") }
+    // # Day 20
+    if day20::is_complete() && print_complete || !day20::is_complete() {
+        day20::part1();
+        day20::part2();
+    } else {
+        println!("✅ Day 20 finished!")
+    }
 
-    //    // # Day 21
-    //    if day21::is_complete() && print_complete || !day21::is_complete() {
-    //         day21::part1();
-    //        day21::part2();
-    //    }  else { println!("✅ Day 21 finished!") }
+    // # Day 21
+    if day21::is_complete() && print_complete || !day21::is_complete() {
+        day21::part1();
+        day21::part2();
+    } else {
+        println!("✅ Day 21 finished!")
+    }
 
-    //    // # Day 22
-    //    if day22::is_complete() && print_complete || !day22::is_complete() {
-    //         day22::part1();
-    //        day22::part2();
-    //    }  else { println!("✅ Day 22 finished!") }
+    // # Day 22
+    if day22::is_complete() && print_complete || !day22::is_complete() {
+        day22::part1();
+        day22::part2();
+    } else {
+        println!("✅ Day 22 finished!")
+    }
 
-    //    // # Day 23
-    //    if day23::is_complete() && print_complete || !day23::is_complete() {
-    //         day23::part1();
-    //        day23::part2();
-    //    }  else { println!("✅ Day 23 finished!") }
+    // # Day 23
+    if day23::is_complete() && print_complete || !day23::is_complete() {
+        day23::part1();
+        day23::part2();
+    } else {
+        println!("✅ Day 23 finished!")
+    }
 
-    //    // # Day 24
-    //    if day24::is_complete() && print_complete || !day24::is_complete() {
-    //         day24::part1();
-    //        day24::part2();
-    //    }  else { println!("✅ Day 24 finished!") }
+    // # Day 24
+    if day24::is_complete() && print_complete || !day24::is_complete() {
+        day24::part1();
+        day24::part2();
+    } else {
+        println!("✅ Day 24 finished!")
+    }
 }
