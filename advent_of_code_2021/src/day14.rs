@@ -114,7 +114,7 @@ fn grow_template_hash_maps(
     steps: u32,
 ) -> HashMap<String, i64> {
     let mut pairs_table = polymer_to_hashmap(template);
-    println!("map: {:?}", pairs_table);
+    // println!("map: {:?}", pairs_table);
 
     for _step in 0..steps {
         let mut pairs_table_next_step: HashMap<String, i64> = HashMap::new();
@@ -146,7 +146,7 @@ fn grow_template_hash_maps(
             }
         }
         pairs_table = pairs_table_next_step;
-        println!("map: {:?}", pairs_table);
+        // println!("map: {:?}", pairs_table);
     }
     pairs_table
 }
