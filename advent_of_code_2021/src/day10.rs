@@ -104,7 +104,7 @@ fn get_matching_brace(brace: char) -> char {
         '[' => ']',
         '{' => '}',
         '<' => '>',
-        other @ _ => {
+        other => {
             panic!("Other sign: {} found!", other)
         }
     };
@@ -117,7 +117,7 @@ fn get_score_illegal(illegal_bracket: char) -> i32 {
         ']' => 57,
         '}' => 1197,
         '>' => 25137,
-        other @ _ => {
+        other => {
             panic!("Other sign: {} found!", other)
         }
     };
@@ -173,7 +173,7 @@ pub fn part2() {
         .filter(|&line| find_illegal_char(String::from(line)).is_none())
         .map(|line| score_autocomplete_sequence(find_completing_sequence(line)))
         .collect::<Vec<u64>>();
-    scores.sort();
+    scores.sort_unstable();
 
     // assuming that there is an odd amount of scores
     println!("day10:2 The middle score is {}", scores[scores.len() / 2])
@@ -216,7 +216,7 @@ fn find_completing_sequence(line: &str) -> String {
 fn score_autocomplete_sequence(sequence: String) -> u64 {
     return sequence
         .chars()
-        .map(|c| get_score_auto_complete(c))
+        .map(get_score_auto_complete)
         .fold(0u64, |sum, i| (sum * 5) + i as u64);
 }
 
@@ -227,7 +227,7 @@ fn get_score_auto_complete(missing_bracket: char) -> i32 {
         ']' => 2,
         '}' => 3,
         '>' => 4,
-        other @ _ => {
+        other => {
             panic!("Other sign: {} found!", other)
         }
     };

@@ -66,7 +66,7 @@ fn movement_without_aim(instructions: String) -> (i32, i32) {
 /// For example
 /// get_number_from_line("forward 5") returns 5.
 fn get_number_from_line(s: String) -> Result<i32, std::num::ParseIntError> {
-    let mut iterator = s.split(" ");
+    let mut iterator = s.split(' ');
     iterator.next();
     let num: i32 = iterator.next().unwrap().parse::<i32>()?;
     Ok(num)

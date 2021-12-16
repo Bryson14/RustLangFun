@@ -36,7 +36,7 @@ pub fn part1() {
     let data = read_from_data_dir("day7.txt").unwrap();
     let crab_locations: Vec<i32> = data
         .trim()
-        .split(",")
+        .split(',')
         .map(|s| s.parse().expect("errer parsing"))
         .collect();
     let (fuel, best_position) = least_fuel_location(crab_locations, &movement_cost_linear);
@@ -113,7 +113,7 @@ pub fn part2() {
     let data = read_from_data_dir("day7.txt").unwrap();
     let crab_locations: Vec<i32> = data
         .trim()
-        .split(",")
+        .split(',')
         .map(|s| s.parse().expect("errer parsing"))
         .collect();
     let (fuel, best_position) = least_fuel_location(crab_locations, &movement_cost_increment_one);

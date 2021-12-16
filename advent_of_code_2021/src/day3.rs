@@ -137,7 +137,7 @@ fn oxygen_co2_scrubber_ratings(binary: Vec<&str>) -> (isize, isize) {
         filtered = filtered
             .iter()
             .filter(|&&s| s.starts_with(&oxygen_rating))
-            .map(|&x| x)
+            .copied()
             .collect();
 
         if filtered.len() == 1 {
@@ -158,7 +158,7 @@ fn oxygen_co2_scrubber_ratings(binary: Vec<&str>) -> (isize, isize) {
         filtered = filtered
             .iter()
             .filter(|&&s| s.starts_with(&co2_scrubber))
-            .map(|&x| x)
+            .copied()
             .collect();
 
         if filtered.len() == 1 {
@@ -172,7 +172,7 @@ fn oxygen_co2_scrubber_ratings(binary: Vec<&str>) -> (isize, isize) {
     )
 }
 
-fn get_most_common(binary: &Vec<&str>, idx: usize) -> Option<i32> {
+fn get_most_common(binary: &[&str], idx: usize) -> Option<i32> {
     let ones_count = binary
         .iter()
         .filter(|s| s.chars().nth(idx).unwrap() == '1')

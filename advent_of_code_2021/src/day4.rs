@@ -61,16 +61,13 @@ pub fn part1() {
         called_nums.push(num);
 
         for board in &bingo_boards {
-            match board.winning_line(&called_nums) {
-                Some((winning_line, sum_unused)) => {
-                    println!(
-                        "Day4:1 Answer is {}. Winning line was {:?}",
-                        sum_unused * num as i32,
-                        winning_line
-                    );
-                    break 'outer;
-                }
-                None => (),
+            if let Some((winning_line, sum_unused)) = board.winning_line(&called_nums) {
+                println!(
+                    "Day4:1 Answer is {}. Winning line was {:?}",
+                    sum_unused * num as i32,
+                    winning_line
+                );
+                break 'outer;
             }
         }
     }
@@ -94,7 +91,7 @@ fn parse_game_info(s: String) -> (Vec<u8>, Vec<BingoBoard>) {
     let instructions: Vec<u8> = lines
         .next()
         .unwrap()
-        .split(",")
+        .split(',')
         .map(|num| num.trim().parse().expect("Bad Number"))
         .collect();
 
@@ -107,15 +104,13 @@ fn parse_game_info(s: String) -> (Vec<u8>, Vec<BingoBoard>) {
             continue;
         }
         let row: Vec<u8> = line
-            .split(" ")
+            .split(' ')
             .map(|s| s.trim())
-            .filter(|s| s.len() > 0)
+            .filter(|s| !s.is_empty())
             .map(|s| s.parse().expect("Bad Number"))
             .collect();
 
-        for i in 0..5 {
-            board.board[current_row][i] = row[i];
-        }
+        board.board[current_row][..5].clone_from_slice(&row[..5]);
         current_row += 1;
 
         if current_row >= 5 {
@@ -142,10 +137,10 @@ impl BingoBoard {
     }
 
     // returns the winning line and the sum of the unused numbers
-    fn winning_line(&self, called_nums: &Vec<u8>) -> Option<([u8; 5], i32)> {
+    fn winning_line(&self, called_nums: &[u8]) -> Option<([u8; 5], i32)> {
         // checking rows
         for row in self.board {
-            if row.iter().all(|x| called_nums.contains(&x)) {
+            if row.iter().all(|x| called_nums.contains(x)) {
                 return Some((row, self.sum_of_unused_numbers(called_nums)));
             }
         }
@@ -153,9 +148,9 @@ impl BingoBoard {
         for col in 0..self.board[0].len() {
             let mut winning_col: [u8; 5] = [0; 5];
             let mut all_called = true;
-            for row in 0..self.board.len() {
+            for (row, item) in winning_col.iter_mut().enumerate().take(self.board.len()) {
                 if called_nums.contains(&self.board[row][col]) {
-                    winning_col[row] = self.board[row][col];
+                    *item = self.board[row][col];
                 } else {
                     all_called = false;
                 }
@@ -194,7 +189,7 @@ impl BingoBoard {
         None
     }
 
-    fn sum_of_unused_numbers(&self, called_nums: &Vec<u8>) -> i32 {
+    fn sum_of_unused_numbers(&self, called_nums: &[u8]) -> i32 {
         let mut total: i32 = 0;
         for row in self.board.iter() {
             total += row
@@ -226,25 +221,20 @@ pub fn part2() {
         called_nums.push(num);
 
         for board in &bingo_boards {
-            match board.winning_line(&called_nums) {
-                Some((winning_line, sum_unused)) => {
-                    // check to see if its the last board
-                    if finished_boards.len() == bingo_boards.len() - 1
-                        && !finished_boards.contains(&board)
-                    {
-                        println!(
-                            "Day4:2 Last board to win is {:?}. Answer is {}",
-                            winning_line,
-                            sum_unused * num as i32,
-                        );
-                        break 'outer;
-                    } else {
-                        if !finished_boards.contains(&board) {
-                            finished_boards.push(board);
-                        }
-                    }
+            if let Some((winning_line, sum_unused)) = board.winning_line(&called_nums) {
+                // check to see if its the last board
+                if finished_boards.len() == bingo_boards.len() - 1
+                    && !finished_boards.contains(&board)
+                {
+                    println!(
+                        "Day4:2 Last board to win is {:?}. Answer is {}",
+                        winning_line,
+                        sum_unused * num as i32,
+                    );
+                    break 'outer;
+                } else if !finished_boards.contains(&board) {
+                    finished_boards.push(board);
                 }
-                None => (),
             }
         }
     }

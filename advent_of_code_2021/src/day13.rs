@@ -105,9 +105,9 @@ use std::fmt;
 ///
 /// How many dots are visible after completing just the first fold instruction on your transparent paper?
 pub fn part1() {
-    let (positions_of_dots, list_of_cuts) =
+    let (positions_of_dots, _list_of_cuts) =
         read_origami_paper(read_from_data_dir("day13.txt").unwrap());
-    let origami_paper = OrgPaper::from_positions(positions_of_dots);
+    let _origami_paper = OrgPaper::from_positions(positions_of_dots);
     // println!("paper: {}", origami_paper);
 }
 
@@ -120,12 +120,12 @@ fn read_origami_paper(s: String) -> (Vec<(i32, i32)>, Vec<Cut>) {
     for line in s.lines() {
         if position_re.is_match(line) {
             let line_x_y: Vec<i32> = line
-                .split(",")
+                .split(',')
                 .map(|s| s.parse::<i32>().expect("error parsing number"))
                 .collect();
             positions.push((line_x_y[0], line_x_y[1]));
         } else if fold_re.is_match(line) {
-            let contains_x = line.contains("x");
+            let contains_x = line.contains('x');
             let equal_sign = line.chars().position(|c| c == '=').unwrap();
             let num = &line[equal_sign + 1..line.len()];
             let num = num.parse::<i32>().unwrap();
@@ -163,7 +163,7 @@ impl OrgPaper {
             grid[pos.1 as usize][pos.0 as usize] = true;
         });
 
-        OrgPaper { grid: grid }
+        OrgPaper { grid }
     }
 }
 
@@ -178,7 +178,7 @@ impl fmt::Display for OrgPaper {
                     s.push_str(". ")
                 }
             });
-            s.push_str("\n");
+            s.push('\n');
         });
         write!(f, "{}", s)
     }

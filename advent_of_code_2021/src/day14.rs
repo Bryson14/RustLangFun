@@ -1,5 +1,4 @@
 use crate::read_from_data_dir;
-use regex::Regex;
 use std::collections::HashMap;
 
 /// # --- Day 14: Extended Polymerization ---
@@ -66,9 +65,7 @@ pub fn part1() {
 /// current index and the one behind it. If it can insert a pair, it will and move the
 /// index increments by 2, else if there is not pair to insert, the index increments by one.
 /// this is super slow and unsuable after steps > 17 because of memory usage
-fn grow_template(template: String, pair_rules: Vec<InsertionPair>, steps: u32) -> String {
-    let mut polymer = template.clone();
-
+fn grow_template(mut polymer: String, pair_rules: Vec<InsertionPair>, steps: u32) -> String {
     for _step in 0..steps {
         let mut idx: usize = 1;
         while idx < polymer.len() {
@@ -96,7 +93,7 @@ fn polymer_to_hashmap(polymer: String) -> HashMap<String, i64> {
     let mut idx = 1;
     while idx < polymer.len() {
         let check_pair: String = String::from(&polymer[idx - 1..idx + 1]);
-        *pairs_table.entry(String::from(check_pair)).or_insert(0) += 1;
+        *pairs_table.entry(check_pair).or_insert(0) += 1;
         idx += 1;
     }
     pairs_table
@@ -118,7 +115,7 @@ fn grow_template_hash_maps(
 
     for _step in 0..steps {
         let mut pairs_table_next_step: HashMap<String, i64> = HashMap::new();
-        let copy_of_keys: Vec<String> = pairs_table.keys().map(|s| String::from(s)).collect();
+        let copy_of_keys: Vec<String> = pairs_table.keys().map(String::from).collect();
         for key in copy_of_keys {
             if pair_rules.iter().any(|pair| pair.pair == key) {
                 pair_rules.iter().for_each(|pair| {
@@ -197,7 +194,7 @@ struct InsertionPair {
 pub fn part2() {
     let (pairs, template) = parse_data(read_from_data_dir("day14.txt").unwrap());
     let steps = 1;
-    let final_polymer = grow_template_hash_maps(template, pairs, steps);
+    let _final_polymer = grow_template_hash_maps(template, pairs, steps);
     // count the hashmap
     let freq_diff = frequency_difference("ok".into());
     println!(
@@ -293,6 +290,7 @@ mod tests {
         assert_eq!(freq_diff, 1588);
     }
 
+    #[test]
     fn test_with_test_data_3() {
         let (pairs, template) = parse_data(read_from_data_dir("day14_test.txt").unwrap());
         let final_character: char = template.chars().rev().take(1).collect::<Vec<char>>()[0];

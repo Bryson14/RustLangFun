@@ -65,15 +65,10 @@ pub fn part1() {
         .lines()
         .map(|line| {
             line.split(" | ")
-                .skip(1)
-                .next()
+                .nth(1)
                 .unwrap()
                 .split_ascii_whitespace()
-                .filter(|tok| match tok.len() {
-                    // actual digits: 1 | 4 | 7 | 8
-                    2 | 4 | 3 | 7 => true,
-                    _ => false,
-                })
+                .filter(|tok| matches!(tok.len(), 2 | 4 | 3 | 7))
                 .count() as i64
         })
         .sum::<i64>();
@@ -168,7 +163,7 @@ pub fn part2() {
     // 9: 6 segment
     let data = read_from_data_dir("day8.txt").unwrap();
     for line in data.lines() {
-        let mut split = line.split("|");
+        let mut split = line.split('|');
         let signal_patterns: Vec<&str> = split.next().unwrap().split_ascii_whitespace().collect();
         let four_digits: Vec<&str> = split.next().unwrap().split_ascii_whitespace().collect();
 

@@ -53,7 +53,7 @@ use crate::read_from_data_dir;
 pub fn part1() {
     let data = read_from_data_dir("day6.txt").expect("Error reading in day6 data.");
     let initial_state: Vec<u8> = data
-        .split(",")
+        .split(',')
         .map(|s| s.parse::<u8>().expect("parsing error"))
         .collect();
     let total_fish = run_growth_simulation(initial_state, 80);
@@ -78,7 +78,7 @@ fn run_growth_simulation(initial_state: Vec<u8>, days: i32) -> usize {
     }
     for _day in 0..days {
         let mut temp_status: [usize; 9] = [0; 9];
-        for i in 0..fish_status.len() {
+        for (i, _item) in fish_status.iter().enumerate() {
             let value = fish_status[i];
             match i {
                 num @ 1..=8 => temp_status[num - 1] += value,
@@ -93,7 +93,7 @@ fn run_growth_simulation(initial_state: Vec<u8>, days: i32) -> usize {
         }
         fish_status = temp_status;
     }
-    fish_status.iter().map(|v| v).sum::<usize>()
+    fish_status.iter().sum::<usize>()
 }
 
 /// # --- Part Two ---
@@ -105,7 +105,7 @@ fn run_growth_simulation(initial_state: Vec<u8>, days: i32) -> usize {
 pub fn part2() {
     let data = read_from_data_dir("day6.txt").expect("Error reading in day6 data.");
     let initial_state: Vec<u8> = data
-        .split(",")
+        .split(',')
         .map(|s| s.parse::<u8>().expect("parsing error"))
         .collect();
     let total_fish = run_growth_simulation(initial_state, 256);

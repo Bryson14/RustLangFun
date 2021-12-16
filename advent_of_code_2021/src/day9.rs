@@ -84,8 +84,8 @@ fn find_low_points(heightmap: Vec<Vec<u8>>) -> Vec<Point> {
             // if passed all the conditions, then adds the low point.
             low_points.push(Point {
                 value: heightmap[row][col],
-                row: row,
-                col: col,
+                row,
+                col,
             });
         }
     }
