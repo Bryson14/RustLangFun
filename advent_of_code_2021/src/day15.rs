@@ -340,7 +340,7 @@ pub fn part2() {
     let map = string_to_map(read_from_data_dir("day15.txt").unwrap());
     let min = find_min_path(duplicate_map(map, 5));
     println!(
-        "Day15:2. Min path is {} 2875 is too high, 2865 too low",
+        "Day15:2. Min path is {} 2875 is too high, 2865 too low, 2873,2870",
         min
     );
 }
