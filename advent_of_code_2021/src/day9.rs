@@ -24,23 +24,30 @@ use crate::read_from_data_dir;
 /// Find all of the low points on your heightmap. What is the sum of the risk levels of all low points on your heightmap?
 pub fn part1() {
     let data = read_from_data_dir("day9.txt").unwrap();
-    let map = data
-        .lines()
+    let map = string_to_map(data);
+    let ans = sum_low_points(map);
+    println!("Day9:1 The risk level sum for all low points is {}", ans);
+}
+
+fn string_to_map(s: String) -> Vec<Vec<u8>> {
+    s.lines()
         .map(|line| {
             line.split("")
                 .filter(|s| !s.is_empty())
                 .map(|s| s.parse::<u8>().unwrap())
                 .collect()
         })
-        .collect();
+        .collect()
+}
+
+fn sum_low_points(map: Vec<Vec<u8>>) -> u64 {
     let low_points = find_low_points(map);
     // println!("low points: {:?}", low_points);
 
-    let ans: usize = low_points
+    low_points
         .iter()
-        .map(|point| point.get_risk_level() as usize)
-        .sum();
-    println!("Day9:1 The risk level sum for all low points is {}", ans);
+        .map(|point| point.get_risk_level() as u64)
+        .sum()
 }
 
 #[derive(Debug, PartialEq)]
@@ -136,12 +143,19 @@ mod tests {
             row: 4,
             col: 6
         }));
+    }
 
-        let ans: usize = low_points
-            .iter()
-            .map(|point| point.get_risk_level() as usize)
-            .sum();
-        assert_eq!(ans, 15);
+    #[test]
+    fn test_sum_low_points() {
+        let data: Vec<Vec<u8>> = vec![
+            vec![2, 1, 9, 9, 9, 4, 3, 2, 1, 0],
+            vec![3, 9, 8, 7, 8, 9, 4, 9, 2, 1],
+            vec![9, 8, 5, 6, 7, 8, 9, 8, 9, 2],
+            vec![8, 7, 6, 7, 8, 9, 6, 7, 8, 9],
+            vec![9, 8, 9, 9, 9, 6, 5, 6, 7, 8],
+        ];
+
+        assert_eq!(sum_low_points(data), 15);
     }
 
     #[test]

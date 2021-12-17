@@ -85,7 +85,6 @@ use crate::read_from_data_dir;
 /// Decode the structure of your hexadecimal-encoded BITS transmission; what do you get if you add up the version numbers in all packets?
 pub fn part1() {
     let _data = read_from_data_dir("day16.txt").unwrap();
-    todo!();
 }
 
 fn parse_hexidecimal(s: String) -> Vec<u32> {
