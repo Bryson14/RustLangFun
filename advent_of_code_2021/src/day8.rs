@@ -209,7 +209,7 @@ fn chars_to_idx<'a>(token: &'a str) -> Vec<usize> {
 }
 
 /// the map is set up as such:
-/// . 1 2 3 4 5 6 7
+/// * 1 2 3 4 5 6 7
 /// a . . . . . . .
 /// b . . . . . . .
 /// c . . . . . . .
@@ -264,28 +264,28 @@ fn convert_token_to_num<'a>(truth_map: &[Vec<bool>], token: &'a str) -> u32 {
         .map(|row| truth_map[*row].iter().position(|boolean| *boolean).unwrap())
         .collect();
 
-    lit_sections.sort();
+    lit_sections.sort_unstable();
 
     if lit_sections == vec![1, 2, 3, 4, 5, 6] {
-        return 0;
+        0
     } else if lit_sections == vec![3, 4] {
-        return 1;
+        1
     } else if lit_sections == vec![2, 3, 5, 6, 7] {
-        return 2;
+        2
     } else if lit_sections == vec![2, 3, 4, 5, 7] {
-        return 3;
+        3
     } else if lit_sections == vec![1, 3, 4, 7] {
-        return 4;
+        4
     } else if lit_sections == vec![1, 2, 4, 5, 7] {
-        return 5;
+        5
     } else if lit_sections == vec![1, 2, 4, 5, 6, 7] {
-        return 6;
+        6
     } else if lit_sections == vec![2, 3, 4] {
-        return 7;
+        7
     } else if lit_sections == vec![1, 2, 3, 4, 5, 6, 7] {
-        return 8;
+        8
     } else if lit_sections == vec![1, 2, 3, 4, 5, 7] {
-        return 9;
+        9
     } else {
         println!("Wires were {:?}", lit_sections);
         unreachable!();
