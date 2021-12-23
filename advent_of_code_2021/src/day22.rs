@@ -104,7 +104,63 @@ use crate::read_from_data_dir;
 /// The last two steps are fully outside the initialization procedure area; all other steps are fully within it. After executing these steps in the initialization procedure region, 590784 cubes are on.
 ///
 /// Execute the reboot steps. Afterward, considering only cubes in the region x=-50..50,y=-50..50,z=-50..50, how many cubes are on?
-pub fn part1() {}
+pub fn part1() {
+    let data = read_from_data_dir("day22.txt").unwrap();
+    let instructions = read_in_instructions(data);
+    let on_cubes = execute_reboot(instructions);
+    println!(
+        "The number of cubes on within -50 -> 50 cube is {}",
+        on_cubes
+    )
+}
+
+fn count_on_cubes(reactor: &Vec<Vec<Vec<bool>>>) -> u64 {
+    reactor
+        .iter()
+        .map(|plane: Vec<Vec<bool>>| {
+            plane
+                .iter()
+                .map(|&line| line.iter().filter(|&cube| *cube == true).count())
+                .sum::<u64>()
+        })
+        .sum::<u64>()
+}
+
+fn read_in_instructions(data: String) -> Vec<Cuboid> {
+    Vec::new()
+}
+
+fn execute_reboot(instructions: Vec<Cuboid>) -> usize {
+    5
+}
+
+struct Cuboid {
+    x_range: (i32, i32),
+    y_range: (i32, i32),
+    z_range: (i32, i32),
+    turn_on: bool,
+}
+
+impl Cuboid {
+    fn get_points(&self) -> Vec<Point> {
+        let mut points = Vec::new();
+        for x in self.x_range.0..=self.x_range.1 {
+            for y in self.y_range.0..=self.y_range.1 {
+                for z in self.z_range.0..=self.z_range.1 {
+                    points.push(Point { x, y, z });
+                }
+            }
+        }
+
+        points
+    }
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+    z: i32,
+}
 
 pub fn part2() {}
 
@@ -118,5 +174,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {}
+    fn test_get_points() {
+        let cube = Cuboid {
+            x_range: (-1, 0),
+            y_range: (1, 2),
+            z_range: (3, 5),
+            turn_on: false,
+        };
+    }
 }
