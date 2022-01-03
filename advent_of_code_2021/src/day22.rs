@@ -114,16 +114,35 @@ pub fn part1() {
     )
 }
 
+struct Reactor {
+    core: Vec<Vec<Vec<bool>>>,
+}
+
+impl Reactor {
+    fn new(cuboids: &Vec<Cuboid>) -> Reactor {
+        let (min_x, max_x) = (0, 0);
+        let (min_y, max_y) = (0, 0);
+        let (min_z, max_z) = (0, 0);
+
+        for cuboid in cuboids.iter() {}
+
+        Reactor {
+            core: vec![vec![vec![false]]],
+        }
+    }
+}
+
 fn count_on_cubes(reactor: &Vec<Vec<Vec<bool>>>) -> u64 {
-    reactor
-        .iter()
-        .map(|plane: Vec<Vec<bool>>| {
-            plane
-                .iter()
-                .map(|&line| line.iter().filter(|&cube| *cube == true).count())
-                .sum::<u64>()
-        })
-        .sum::<u64>()
+    // reactor
+    //     .iter()
+    //     .map(|plane: Vec<Vec<bool>>| {
+    //         plane
+    //             .iter()
+    //             .map(|&line| line.iter().filter(|&cube| *cube == true).count())
+    //             .sum::<u64>()
+    //     })
+    //     .sum::<u64>()
+    5
 }
 
 fn read_in_instructions(data: String) -> Vec<Cuboid> {

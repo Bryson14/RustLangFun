@@ -288,7 +288,8 @@ fn convert_token_to_num<'a>(truth_map: &[Vec<bool>], token: &'a str) -> u32 {
         9
     } else {
         println!("Wires were {:?}", lit_sections);
-        unreachable!();
+        // unreachable!();
+        10
     }
 }
 
