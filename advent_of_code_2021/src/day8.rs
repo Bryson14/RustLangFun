@@ -146,10 +146,7 @@ fn split_data<'a>(s: &'a str) -> Vec<&'a str> {
 /// one `true` in each column of the solution map. This will represent the connection between the input and output.
 pub fn part2() {
     let data = read_from_data_dir("day8.txt").unwrap();
-    let total_of_outputs: u32 = data
-        .lines()
-        .map(|line| solve_output(split_data(line)))
-        .sum();
+    let total_of_outputs: u32 = data.lines().map(|line| solve_output(line)).sum();
 
     println!(
         "Day8:2. The total sum of the outputs is {}",
@@ -161,52 +158,28 @@ pub fn part2() {
 /// and solves the message, then returns the last four numbers as u32
 /// the overall idea, is that is goes over all the letters, knowing that some will line up with certain outputs.todo!
 /// The truth_map is a 7x7 grid that represents the mapping between each letter and the actual output
-///  2222
-/// 1    3
-/// 1    3
-///  7777
-/// 6    4
-/// 6    4
-///  5555
+///
 /// for example, passing `ae` must be the number 1, so now we know `sae` must map to `3` and `4`
 /// assumes the last 4 tokens are the output tokens, or the ones after the `|`
-fn solve_output<'a>(tokens: Vec<&'a str>) -> u32 {
-    let mut truth_map = vec![vec![true; 7]; 7];
-    // solve for the map
-    tokens
-        .iter()
-        .for_each(|token| deduce_map(&mut truth_map, token));
+fn solve_output<'a>(data_line: &'a str) -> u32 {
+    let mut zero_2_ten = Vec::new();
+    let mut four_digit_ouput = Vec::new();
+    let mut pip_found = false;
+    for token in data_line.split(" ") {
+        if token == "|" {
+            pip_found = true;
+        } else if pip_found {
+            four_digit_ouput.push(token);
+        } else {
+            zero_2_ten.push(token);
+        }
+    }
+    println!("ok: {:?}", zero_2_ten);
 
-    println!("truth map\n: {:?}", truth_map);
-
-    // convert tokens
-    let converted = tokens
-        .iter()
-        .rev()
-        .take(4)
-        .map(|&token| convert_token_to_num(&truth_map, token))
-        .collect::<Vec<u32>>();
-
-    // put together
-    converted[0] * 1000 + converted[1] * 100 + converted[2] * 10 + converted[3]
+    5
 }
 
-/// helper function to turn "abd" to vec[0,1,3]
-fn chars_to_idx<'a>(token: &'a str) -> Vec<usize> {
-    token
-        .chars()
-        .map(|c| match c {
-            'a' => 0,
-            'b' => 1,
-            'c' => 2,
-            'd' => 3,
-            'e' => 4,
-            'f' => 5,
-            'g' => 6,
-            _ => unreachable!(),
-        })
-        .collect()
-}
+use std::collections::{HashMap, HashSet};
 
 /// the map is set up as such:
 /// * 1 2 3 4 5 6 7
@@ -217,80 +190,30 @@ fn chars_to_idx<'a>(token: &'a str) -> Vec<usize> {
 /// e . . . . . . .
 /// f . . . . . . .
 /// g . . . . . . .
-fn deduce_map<'a>(truth_map: &mut Vec<Vec<bool>>, token: &'a str) {
-    let l = token.len();
-    let row_idxs = chars_to_idx(token);
-    if l == 2 {
-        // 1, wires 3,4
-        change_truth_map(truth_map, row_idxs, vec![2, 3]);
-    } else if l == 3 {
-        // 7, wires 2,3,4
-        change_truth_map(truth_map, row_idxs, vec![1, 2, 3]);
-    } else if l == 4 {
-        // 4, wires 1,3,4,7
-        change_truth_map(truth_map, row_idxs, vec![0, 2, 3, 6]);
-    } else if l == 5 {
-        // 2, wires 2,3,5,6,7
-        // 3, wires 2,3,4,5,7
-        // 5, wires 1,2,4,5,7
-    } else if l == 6 {
-        // 6, wires 1,2,4,5,6,7
-        // 9, wires 1,2,3,4,5,7
-        // 0, wires 1,2,3,4,5,6
-    } else if l == 7 {
-        // 8, all wires
-    } else {
-        unreachable!();
-    }
-}
+///  2222
+/// 1    3
+/// 1    3
+///  7777
+/// 6    4
+/// 6    4
+///  5555
+fn deduce_map<'a>(zero_2_ten: Vec<&'a str>) -> HashMap<char, i32> {
+    let map = HashMap::new();
 
-/// changes the entire row that is not in `true_cols` to false
-/// so `row_idxs: vec[0,1], col: vec[6,7]` would change all of row 0 and 1 to `false` except columns 6 and 7  
-fn change_truth_map(truth_map: &mut Vec<Vec<bool>>, row_idxs: Vec<usize>, true_cols: Vec<usize>) {
-    for row in row_idxs.iter() {
-        for col in 0..7 {
-            if !true_cols.contains(&col) {
-                truth_map[*row][col] = false;
-            }
-        }
-    }
-}
-
-/// now taking the filtered truth map, and the token, it finds what each section of the display is lit up, and converts that to a number
-fn convert_token_to_num<'a>(truth_map: &[Vec<bool>], token: &'a str) -> u32 {
-    let row_idxs = chars_to_idx(token);
-    let mut lit_sections: Vec<usize> = row_idxs
+    // 1 and 7 share the same segments except for 'seg 2'
+    let two_and_seven: Vec<&str> = zero_2_ten
         .iter()
-        .map(|row| truth_map[*row].iter().position(|boolean| *boolean).unwrap())
+        .filter(|tok| tok.len() == 2 || tok.len() == 3)
+        .map(|&token| token)
         .collect();
 
-    lit_sections.sort_unstable();
+    assert!(two_and_seven.len() == 2);
+    let map1: HashSet<char> =
+        HashSet::from(two_and_seven[0].chars().cloned().collect::<Vec<char>>());
+    let map2: HashSet<char> =
+        HashSet::from(two_and_seven[1].chars().cloned().collect::<Vec<char>>());
 
-    if lit_sections == vec![1, 2, 3, 4, 5, 6] {
-        0
-    } else if lit_sections == vec![3, 4] {
-        1
-    } else if lit_sections == vec![2, 3, 5, 6, 7] {
-        2
-    } else if lit_sections == vec![2, 3, 4, 5, 7] {
-        3
-    } else if lit_sections == vec![1, 3, 4, 7] {
-        4
-    } else if lit_sections == vec![1, 2, 4, 5, 7] {
-        5
-    } else if lit_sections == vec![1, 2, 4, 5, 6, 7] {
-        6
-    } else if lit_sections == vec![2, 3, 4] {
-        7
-    } else if lit_sections == vec![1, 2, 3, 4, 5, 6, 7] {
-        8
-    } else if lit_sections == vec![1, 2, 3, 4, 5, 7] {
-        9
-    } else {
-        println!("Wires were {:?}", lit_sections);
-        // unreachable!();
-        10
-    }
+    map
 }
 
 // 0: 6 segment
@@ -325,16 +248,13 @@ mod tests {
     }
 
     #[test]
-    fn test_chars_to_idx() {
-        assert_eq!(chars_to_idx("abde"), vec![0, 1, 3, 4]);
-    }
-
-    #[test]
     fn test_solve_output() {
         let input =
             "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf";
-        let splits = split_data(input);
-        let output = solve_output(splits);
+        let output = solve_output(input);
         assert_eq!(output, 5353);
     }
+
+    #[test]
+    fn test_deduce_map() {}
 }

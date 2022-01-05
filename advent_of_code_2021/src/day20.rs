@@ -106,7 +106,7 @@ pub fn part1() {
     let new_image = enhance_image(&image, &noise_algo);
     let double_enhanced = enhance_image(&new_image, &noise_algo);
     println!(
-        "Day20:1 After enhancement, the number of on pixels is {} (4858,4886) too low ",
+        "Day20:1 After enhancement, the number of on pixels is {} (4858, 4884, 4886) too low ",
         count_on(&double_enhanced)
     );
 }
@@ -126,13 +126,11 @@ fn string_to_image(data: &str) -> Vec<Vec<char>> {
 }
 
 fn enhance_image(image: &Vec<Vec<char>>, noise_algo: &Vec<char>) -> Vec<Vec<char>> {
+    assert!(noise_algo.len() == 512);
     let mut new_image = vec![vec!['.'; image[0].len()]; image.len()];
     for (row, sub_vector) in image.iter().enumerate() {
-        for (col, pixel) in sub_vector.iter().enumerate() {
-            new_image[row][col] = match get_binary_number(image, row, col) {
-                Some(num) => noise_algo[num],
-                None => *pixel,
-            }
+        for (col, _pixel) in sub_vector.iter().enumerate() {
+            new_image[row][col] = noise_algo[get_binary_number(image, row, col)];
         }
     }
 
@@ -140,22 +138,27 @@ fn enhance_image(image: &Vec<Vec<char>>, noise_algo: &Vec<char>) -> Vec<Vec<char
 }
 
 // takes the row and col, finds the 9x9 square and create the binary number out of it
-fn get_binary_number(image: &Vec<Vec<char>>, row: usize, col: usize) -> Option<usize> {
-    if row == 0 || row == image.len() - 1 || col == 0 || col == image[0].len() - 1 {
-        None
-    } else {
-        let mut binary = String::new();
-        for r in row - 1..=row + 1 {
-            for c in col - 1..=col + 1 {
-                binary.push(binary_from_char(&image[r][c]));
-            }
-        }
+fn get_binary_number(image: &Vec<Vec<char>>, row: usize, col: usize) -> usize {
+    let mut binary = String::new();
 
-        Some(isize::from_str_radix(&binary, 2).unwrap() as usize)
+    // i know that any invalid lookup into the image (idx less than 0 or greater than len) should result in a '.'
+    let row = row as i32;
+    let col = col as i32;
+    for r in row - 1..=row + 1 {
+        for c in col - 1..=col + 1 {
+            let mut char_2_add = '.';
+            if r < 0 || c < 0 || r as usize >= image.len() || c as usize >= image[0].len() {
+            } else {
+                char_2_add = image[r as usize][c as usize];
+            }
+            binary.push(ch_2_bi(&char_2_add));
+        }
     }
+
+    isize::from_str_radix(&binary, 2).unwrap() as usize
 }
 
-fn binary_from_char(item: &char) -> char {
+fn ch_2_bi(item: &char) -> char {
     return match item {
         '#' => '1',
         '.' => '0',
@@ -181,7 +184,7 @@ mod tests {
             vec!['#', '.', '.'],
             vec!['.', '#', '.'],
         ];
-        assert_eq!(get_binary_number(&image, 1, 1).unwrap(), 34);
+        assert_eq!(get_binary_number(&image, 1, 1), 34);
     }
 
     #[test]
@@ -191,7 +194,18 @@ mod tests {
             vec!['#', '.', '.'],
             vec!['.', '#', '.'],
         ];
-        assert_eq!(get_binary_number(&image, 0, 1), None);
+        assert_eq!(get_binary_number(&image, 0, 1), 4);
+    }
+
+    #[test]
+    fn test_get_binary_number_3() {
+        let image = vec![
+            vec!['.', '.', '.'],
+            vec!['#', '.', '.'],
+            vec!['.', '#', '.'],
+        ];
+        // 000100000 = 32
+        assert_eq!(get_binary_number(&image, 2, 2), 32);
     }
 
     #[test]
