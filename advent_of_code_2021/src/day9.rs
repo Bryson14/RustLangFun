@@ -41,8 +41,8 @@ fn string_to_map(s: String) -> Vec<Vec<u8>> {
 }
 
 fn sum_low_points(map: Vec<Vec<u8>>) -> u64 {
-    let low_points = find_low_points(map);
-    // println!("low points: {:?}", low_points);
+    let low_points = find_low_points(&map);
+    println!("low points: {:?}", low_points);
 
     low_points
         .iter()
@@ -63,44 +63,141 @@ impl Point {
     }
 }
 
-fn find_low_points(heightmap: Vec<Vec<u8>>) -> Vec<Point> {
+fn find_low_points(heightmap: &Vec<Vec<u8>>) -> Vec<Point> {
     let mut low_points: Vec<Point> = Vec::new();
+    let neighbors: Vec<(i32, i32)> = vec![(-1, 0), (0, -1), (0, 1), (1, 0)];
 
-    for row in 0..heightmap.len() {
-        for col in 0..heightmap[row].len() {
-            // checking above (row - 1)
-            if row > 0 && heightmap[row][col] > heightmap[row - 1][col] {
-                continue;
+    for (row_idx, subvec) in heightmap.iter().enumerate() {
+        for (col_idx, value) in subvec.iter().enumerate() {
+            let is_lower: bool = neighbors
+                .iter()
+                .filter(|&neighbor| {
+                    point_on_map(
+                        &heightmap,
+                        row_idx as i32 + neighbor.0,
+                        col_idx as i32 + neighbor.1,
+                    )
+                })
+                .all(|&neighbor| {
+                    *value
+                        < heightmap[(row_idx as i32 + neighbor.0) as usize]
+                            [(col_idx as i32 + neighbor.1) as usize]
+                });
+
+            if is_lower {
+                low_points.push(Point {
+                    value: *value,
+                    row: row_idx,
+                    col: col_idx,
+                })
             }
-
-            // checking below (row + 1)
-            if row < heightmap.len() - 1 && heightmap[row][col] > heightmap[row + 1][col] {
-                continue;
-            }
-
-            // checking left (col - 1)
-            if col > 0 && heightmap[row][col] > heightmap[row][col - 1] {
-                continue;
-            }
-
-            // checking right (col + 1)
-            if col < heightmap[row].len() - 1 && heightmap[row][col] > heightmap[row][col + 1] {
-                continue;
-            }
-
-            // if passed all the conditions, then adds the low point.
-            low_points.push(Point {
-                value: heightmap[row][col],
-                row,
-                col,
-            });
         }
     }
 
     low_points
 }
 
-pub fn part2() {}
+fn point_on_map(heightmap: &Vec<Vec<u8>>, row: i32, col: i32) -> bool {
+    if row < 0 || col < 0 {
+        return false;
+    }
+    if let Some(subvec) = heightmap.get(row as usize) {
+        if let Some(_item) = subvec.get(col as usize) {
+            return true;
+        }
+    }
+
+    false
+}
+
+/// # --- Part Two ---
+/// Next, you need to find the largest basins so you know what areas are most important to avoid.
+///
+/// A basin is all locations that eventually flow downward to a single low point. Therefore, every low point has a basin, although some basins are very small. Locations of height 9 do not count as being in any basin, and all other locations will always be part of exactly one basin.
+///
+/// The size of a basin is the number of locations within the basin, including the low point. The example above has four basins.
+///
+/// The top-left basin, size 3:
+///
+/// 2199943210
+/// 3987894921
+/// 9856789892
+/// 8767896789
+/// 9899965678
+/// The top-right basin, size 9:
+///
+/// 2199943210
+/// 3987894921
+/// 9856789892
+/// 8767896789
+/// 9899965678
+/// The middle basin, size 14:
+///
+/// 2199943210
+/// 3987894921
+/// 9856789892
+/// 8767896789
+/// 9899965678
+/// The bottom-right basin, size 9:
+///
+/// 2199943210
+/// 3987894921
+/// 9856789892
+/// 8767896789
+/// 9899965678
+/// Find the three largest basins and multiply their sizes together. In the above example, this is 9 * 14 * 9 = 1134.
+///
+/// What do you get if you multiply together the sizes of the three largest basins?
+pub fn part2() {
+    let data = read_from_data_dir("day9.txt").unwrap();
+    let map = string_to_map(data);
+    let low_points = find_low_points(&map);
+    let member_map = convert_map_from_int_to_members(map);
+    let filled_map = fill_basins(&mut member_map, low_points);
+    let mut basin_counts = count_basins(&member_map);
+    basin_counts.sort_unstable();
+    basin_counts.reverse();
+
+    println!(
+        "Day9:2 The three largest basins multiplied together are {}",
+        basin_counts.iter().take(3).fold(1, |acc, x| acc * x)
+    );
+}
+
+fn convert_map_from_int_to_members(heightmap: Vec<Vec<u8>>) -> Vec<Vec<BasinMember>> {
+    let mut member_map = vec![
+        vec![
+            BasinMember {
+                basin_id: 0,
+                claimed: false,
+                value: 0
+            };
+            heightmap[0].len()
+        ];
+        heightmap.len()
+    ];
+
+    for (r_idx, row) in heightmap.iter().enumerate() {
+        for (c_idx, value) in row.iter().enumerate() {
+            member_map[r_idx][c_idx].value = *value;
+        }
+    }
+
+    member_map
+}
+
+#[derive(Debug, Copy, Clone)]
+struct BasinMember {
+    basin_id: u32,
+    claimed: bool,
+    value: u8,
+}
+
+fn fill_basins(map: &mut Vec<Vec<BasinMember>>, low_points: Vec<Point>) {}
+
+fn count_basins(map: &Vec<Vec<BasinMember>>) -> Vec<i32> {
+    5
+}
 
 pub fn is_complete() -> bool {
     false
@@ -120,7 +217,7 @@ mod tests {
             vec![9, 8, 9, 9, 9, 6, 5, 6, 7, 8],
         ];
 
-        let low_points = find_low_points(data);
+        let low_points = find_low_points(&data);
         println!("low points: {:?}", low_points);
 
         assert!(low_points.contains(&Point {
@@ -159,5 +256,9 @@ mod tests {
     }
 
     #[test]
-    fn test_movement_with_aim() {}
+    fn test_convert_to_member_map() {
+        let map = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
+
+        println!("map: {:?}", convert_map_from_int_to_members(map));
+    }
 }
