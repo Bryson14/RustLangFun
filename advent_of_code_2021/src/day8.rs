@@ -146,7 +146,7 @@ fn split_data<'a>(s: &'a str) -> Vec<&'a str> {
 /// one `true` in each column of the solution map. This will represent the connection between the input and output.
 pub fn part2() {
     let data = read_from_data_dir("day8.txt").unwrap();
-    let total_of_outputs: u32 = data.lines().map(|line| solve_output(line)).sum();
+    let total_of_outputs: u32 = data.lines().map(solve_output).sum();
 
     println!(
         "Day8:2. The total sum of the outputs is {}",
@@ -161,11 +161,11 @@ pub fn part2() {
 ///
 /// for example, passing `ae` must be the number 1, so now we know `sae` must map to `3` and `4`
 /// assumes the last 4 tokens are the output tokens, or the ones after the `|`
-fn solve_output<'a>(data_line: &'a str) -> u32 {
+fn solve_output(data_line: &str) -> u32 {
     let mut zero_2_ten = Vec::new();
     let mut four_digit_ouput = Vec::new();
     let mut pip_found = false;
-    for token in data_line.split(" ") {
+    for token in data_line.split(' ') {
         if token == "|" {
             pip_found = true;
         } else if pip_found {
@@ -176,51 +176,133 @@ fn solve_output<'a>(data_line: &'a str) -> u32 {
     }
 
     let solved_map = deduce_map(zero_2_ten);
+    let output_sorted: Vec<String> = four_digit_ouput
+        .iter()
+        .map(|tok| tok.chars().sorted().collect::<String>())
+        .collect();
 
-    5
+    println!("digits: {:?}", output_sorted);
+    let mut output = 0;
+    let mut place_value = 4;
+    for digit in output_sorted.iter() {
+        place_value -= 1;
+        output += solved_map.get(digit).unwrap() * 10i32.pow(place_value);
+    }
+    output as u32
 }
 
-use std::collections::{HashMap, HashSet};
+use itertools::Itertools;
+use std::collections::HashMap;
 
-/// the map is set up as such:
-/// * 1 2 3 4 5 6 7
-/// a . . . . . . .
-/// b . . . . . . .
-/// c . . . . . . .
-/// d . . . . . . .
-/// e . . . . . . .
-/// f . . . . . . .
-/// g . . . . . . .
-///  2222
-/// 1    3
-/// 1    3
-///  7777
-/// 6    4
-/// 6    4
-///  5555
-fn deduce_map<'a>(zero_2_ten: Vec<&'a str>) -> HashMap<char, i32> {
-    let map = HashMap::new();
+/// returns a hashmap that correlates a sorted string to the char
+/// i.e. 'ad' -> 1, 'abd' -> 7
+fn deduce_map(zero_2_ten: Vec<&str>) -> HashMap<String, i32> {
+    let mut map = HashMap::new();
 
-    // 1 and 7 share the same segments except for 'seg 2'
-    let one: Vec<&str> = zero_2_ten
+    // sorting all
+    let tokens: Vec<String> = zero_2_ten
         .iter()
-        .filter(|tok| tok.len() == 2)
-        .map(|&token| token)
-        .collect();
-    let seven: Vec<&str> = zero_2_ten
-        .iter()
-        .filter(|tok| tok.len() == 3)
-        .map(|&token| token)
+        .map(|tok| tok.chars().sorted().collect::<String>())
         .collect();
 
-    assert!(one.len() == 1);
-    assert!(seven.len() == 1);
-    let seg_2: Vec<char> = seven[0]
-        .chars()
-        .filter(|&c| !one.contains(&&c.to_string()[..]))
-        .collect();
+    // inserting 1,4,7,8 because those are known by length of str
+    tokens
+        .iter()
+        .filter(|tok| tok.len() == 2 || tok.len() == 3 || tok.len() == 4 || tok.len() == 7)
+        .for_each(|tok| {
+            let sorted_token = tok.chars().sorted().collect::<String>();
+            map.insert(sorted_token, get_number(tok.len()));
+        });
+    let four = get_key_from_value(&map, &4);
+    let seven = get_key_from_value(&map, &7);
+
+    assert_eq!(map.len(), 4);
+
+    // 9 is len=6 and contains 4
+    let nine: &String = tokens
+        .iter()
+        .filter(|&tok| tok.len() == 6 && contains_chars(tok, &four))
+        .collect::<Vec<&String>>()[0];
+    map.insert(nine.clone(), 9);
+
+    assert_eq!(map.len(), 5);
+
+    // 3 is len=5 and contains 7
+    let three: &String = tokens
+        .iter()
+        .filter(|&tok| tok.len() == 5 && contains_chars(tok, &seven))
+        .collect::<Vec<&String>>()[0];
+    map.insert(three.clone(), 3);
+
+    assert_eq!(map.len(), 6);
+
+    // 0 is len=6, contains 7 but is not 9
+    let zero: &String = tokens
+        .iter()
+        .filter(|&tok| tok.len() == 6 && contains_chars(tok, &seven) && tok != nine)
+        .collect::<Vec<&String>>()[0];
+    map.insert(zero.clone(), 0);
+
+    assert_eq!(map.len(), 7);
+
+    // 6 is len=6, not 0 or 9
+    let six: &String = tokens
+        .iter()
+        .filter(|tok| tok.len() == 6 && !map.contains_key(&*tok.to_string()))
+        .collect::<Vec<&String>>()[0];
+    map.insert(six.clone(), 6);
+
+    assert_eq!(map.len(), 8);
+
+    // 5 is len=5, contained by 9
+    let five: &String = tokens
+        .iter()
+        .filter(|tok| {
+            tok.len() == 5 && contains_chars(nine, tok) && !map.contains_key(&*tok.to_string())
+        })
+        .collect::<Vec<&String>>()[0];
+    map.insert(five.clone(), 5);
+
+    assert_eq!(map.len(), 9);
+
+    // 2 is len=5, not 3 or 5
+    let two: &String = tokens
+        .iter()
+        .filter(|tok| tok.len() == 5 && !map.contains_key(&*tok.to_string()))
+        .collect::<Vec<&String>>()[0];
+    map.insert(two.clone(), 2);
+
+    assert_eq!(map.len(), 10);
+
+    println!("map: {:?}", map);
 
     map
+}
+
+fn get_number(str_len: usize) -> i32 {
+    match str_len {
+        2 => 1,
+        3 => 7,
+        4 => 4,
+        7 => 8,
+        _ => unreachable!(),
+    }
+}
+
+/// checks if one string contains all the other character of another string
+fn contains_chars(container: &str, contained: &str) -> bool {
+    contained.chars().all(|c| container.contains(c))
+}
+
+/// gets the string key by looking at the unique values of the hashmap.
+/// Values and keys all must be unique
+fn get_key_from_value(map: &HashMap<String, i32>, val: &i32) -> String {
+    for (key, value) in map {
+        if value == val {
+            return key.clone();
+        }
+    }
+    String::new()
 }
 
 // 0: 6 segment
@@ -235,12 +317,13 @@ fn deduce_map<'a>(zero_2_ten: Vec<&'a str>) -> HashMap<char, i32> {
 // 9: 6 segment
 
 pub fn is_complete() -> bool {
-    false
+    true
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_split_data() {
@@ -264,4 +347,20 @@ mod tests {
 
     #[test]
     fn test_deduce_map() {}
+
+    #[test]
+    fn test_get_key_by_value() {
+        let mut map = HashMap::new();
+        map.insert("abcd".into(), 4);
+        map.insert("abcdefg".into(), 8);
+
+        assert_eq!(get_key_from_value(&map, &8), String::from("abcdefg"));
+    }
+
+    #[test]
+    fn test_contains_chars() {
+        let a = "abcd";
+        let b = "ac";
+        assert_eq!(contains_chars(a, b), true);
+    }
 }
