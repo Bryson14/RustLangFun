@@ -174,7 +174,8 @@ fn solve_output<'a>(data_line: &'a str) -> u32 {
             zero_2_ten.push(token);
         }
     }
-    println!("ok: {:?}", zero_2_ten);
+
+    let solved_map = deduce_map(zero_2_ten);
 
     5
 }
@@ -201,17 +202,23 @@ fn deduce_map<'a>(zero_2_ten: Vec<&'a str>) -> HashMap<char, i32> {
     let map = HashMap::new();
 
     // 1 and 7 share the same segments except for 'seg 2'
-    let two_and_seven: Vec<&str> = zero_2_ten
+    let one: Vec<&str> = zero_2_ten
         .iter()
-        .filter(|tok| tok.len() == 2 || tok.len() == 3)
+        .filter(|tok| tok.len() == 2)
+        .map(|&token| token)
+        .collect();
+    let seven: Vec<&str> = zero_2_ten
+        .iter()
+        .filter(|tok| tok.len() == 3)
         .map(|&token| token)
         .collect();
 
-    assert!(two_and_seven.len() == 2);
-    let map1: HashSet<char> =
-        HashSet::from(two_and_seven[0].chars().cloned().collect::<Vec<char>>());
-    let map2: HashSet<char> =
-        HashSet::from(two_and_seven[1].chars().cloned().collect::<Vec<char>>());
+    assert!(one.len() == 1);
+    assert!(seven.len() == 1);
+    let seg_2: Vec<char> = seven[0]
+        .chars()
+        .filter(|&c| !one.contains(&&c.to_string()[..]))
+        .collect();
 
     map
 }
