@@ -96,32 +96,102 @@ use std::fmt;
 /// start-RW
 /// How many paths through this cave system are there that visit small caves at most once?
 pub fn part1() {
-    let data = read_from_data_dir("day12.txt");
+    let data = read_from_data_dir("day12.txt").unwrap();
+    let cave_map = create_map(data);
+    let paths = find_unique_paths(cave_map);
 }
 
-struct Path {
-    connections: Vec<Connection>,
+fn create_map(data: String) -> NodeMap {
+    let mut map: HashMap<String, Node> = HashMap::new();
+
+    data.lines().for_each(|line| {
+        let nodes: Vec<String> = line.split("-").map(|node| node.trim()).collect();
+        assert_eq!(nodes.len(), 2);
+
+        let node1 = &mut *map.entry(nodes[0]).or_insert(Node::new(nodes[0]));
+        let _ = node1.add_destination(nodes[1]);
+
+        let node2 = &mut *map.entry(nodes[1]).or_insert(Node::new(nodes[1]));
+        let _ = node2.add_destination(nodes[0]);
+    });
+
+    assert_eq!(map.contains_key("start"), true);
+    assert_eq!(map.contains_key("end"), true);
+
+    NodeMap { map: map }
 }
 
-impl fmt::Display for Path {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut s = String::new();
-        self.connections
-            .iter()
-            .for_each(|connection| s.push_str(&connection.start));
-        s.push_str(&self.connections[self.connections.len() - 1].end);
-        write!(f, "{}", 5)
+fn find_unique_paths(nodemap: NodeMap) -> Vec<String> {
+    let mut path_list = Vec::new();
+    unique_path(nodemap, "start".into(), "start".into(), &mut path_list);
+    path_list
+}
+
+fn unique_path(nodemap: NodeMap, current_node: String, path: String, path_list: &mut Vec<String>) {
+    let current_path = format!("{}->{}", path, current_node);
+    if current_node == "end" {
+        // got to end, record path
+        if !path_list.contains(&current_path) {
+            path_list.push(current_path);
+        }
+    } else if nodemap.map.values().all(|node| !node.can_visit()) {
+        // stuck
+        return;
+    } else {
+        // still going
+        nodemap
+            .map
+            .values()
+            .filter(|node| node.can_visit())
+            .for_each(|node| {
+                let map_copy = nodemap.clone();
+                let node_copy = map_copy.map.get(&node.name).unwrap();
+                *node_copy.visit();
+                unique_path(map_copy, node.name, current_path, path_list);
+            });
     }
 }
 
-struct Connection {
-    start: String,
-    end: String,
+use std::collections::HashMap;
+
+#[derive(Debug, Copy, Clone)]
+struct NodeMap {
+    map: HashMap<String, Node>,
 }
 
-impl PartialEq for Connection {
-    fn eq(&self, other: &Self) -> bool {
-        self.start == other.start && self.end == other.end
+#[derive(Debug, Copy, Clone)]
+struct Node {
+    destinations: Vec<String>,
+    visits_left: usize,
+    name: String,
+}
+
+impl Node {
+    fn new(name: String) -> Node {
+        // name is uppercase
+        let mut visits_left = 1;
+        if name == name.to_uppercase() {
+            visits_left = 2;
+        }
+        Node {
+            destinations: Vec::new(),
+            visits_left: visits_left,
+            name: String::from(name),
+        }
+    }
+
+    fn add_destination(&mut self, name: String) {
+        if !self.destinations.contains(&name) {
+            self.destinations.push(name);
+        }
+    }
+
+    fn visit(&mut self) {
+        self.visits_left -= 1;
+    }
+
+    fn can_visit(&self) -> bool {
+        self.visits_left > 0
     }
 }
 
@@ -136,5 +206,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {}
+    fn test_create_map() {
+        let data: String = "start-A
+        start-b
+        A-c
+        A-b
+        b-d
+        A-end
+        b-end"
+            .to_string();
+
+        let map = create_map(data);
+
+        println!("map:{:?}", map);
+        assert_eq!(1, 2);
+    }
 }

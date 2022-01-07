@@ -42,7 +42,6 @@ fn string_to_map(s: String) -> Vec<Vec<u8>> {
 
 fn sum_low_points(map: Vec<Vec<u8>>) -> u64 {
     let low_points = find_low_points(&map);
-    println!("low points: {:?}", low_points);
 
     low_points
         .iter()
@@ -63,7 +62,7 @@ impl Point {
     }
 }
 
-fn find_low_points(heightmap: &Vec<Vec<u8>>) -> Vec<Point> {
+fn find_low_points(heightmap: &[Vec<u8>]) -> Vec<Point> {
     let mut low_points: Vec<Point> = Vec::new();
     let neighbors: Vec<(i32, i32)> = vec![(-1, 0), (0, -1), (0, 1), (1, 0)];
 
@@ -73,7 +72,7 @@ fn find_low_points(heightmap: &Vec<Vec<u8>>) -> Vec<Point> {
                 .iter()
                 .filter(|&neighbor| {
                     point_on_map(
-                        &heightmap,
+                        heightmap,
                         row_idx as i32 + neighbor.0,
                         col_idx as i32 + neighbor.1,
                     )
@@ -97,7 +96,7 @@ fn find_low_points(heightmap: &Vec<Vec<u8>>) -> Vec<Point> {
     low_points
 }
 
-fn point_on_map(heightmap: &Vec<Vec<u8>>, row: i32, col: i32) -> bool {
+fn point_on_map<T>(heightmap: &[Vec<T>], row: i32, col: i32) -> bool {
     if row < 0 || col < 0 {
         return false;
     }
@@ -153,8 +152,8 @@ pub fn part2() {
     let map = string_to_map(data);
     let low_points = find_low_points(&map);
     let member_map = convert_map_from_int_to_members(map);
-    let filled_map = fill_basins(&mut member_map, low_points);
-    let mut basin_counts = count_basins(&member_map);
+    let filled_map = fill_basins(member_map, low_points);
+    let mut basin_counts = count_basins(&filled_map);
     basin_counts.sort_unstable();
     basin_counts.reverse();
 
@@ -193,14 +192,89 @@ struct BasinMember {
     value: u8,
 }
 
-fn fill_basins(map: &mut Vec<Vec<BasinMember>>, low_points: Vec<Point>) {}
+fn fill_basins(mut map: Vec<Vec<BasinMember>>, low_points: Vec<Point>) -> Vec<Vec<BasinMember>> {
+    // create starting points
+    for (idx, low_point) in low_points.iter().enumerate() {
+        map[low_point.row][low_point.col].claimed = true;
+        map[low_point.row][low_point.col].basin_id = idx as u32 + 1;
+    }
 
-fn count_basins(map: &Vec<Vec<BasinMember>>) -> Vec<i32> {
-    5
+    let mut all_filled = false;
+    let neighbors: Vec<(i32, i32)> = vec![(-1, 0), (0, -1), (0, 1), (1, 0)];
+
+    while !all_filled {
+        for row in 0..map.len() {
+            for col in 0..map[0].len() {
+                if map[row][col].value == 9 {
+                    continue;
+                } else {
+                    if !map[row][col].claimed {
+                        // check if any neighbors are in a basin already
+
+                        for loc in neighbors.iter() {
+                            let mut neighbor_holder: Option<BasinMember> = None;
+                            if let Some(subvec) = map.get((loc.0 + row as i32) as usize) {
+                                if let Some(neighbor) = subvec.get((loc.1 + col as i32) as usize) {
+                                    if neighbor.claimed {
+                                        neighbor_holder = Some(*neighbor);
+                                    }
+                                }
+                            }
+                            // cannot assign to the map while in the mutable for loop above, so I have to hold a reference to the nieghbor here
+                            if let Some(holder) = neighbor_holder {
+                                map[row][col].claimed = true;
+                                map[row][col].basin_id = holder.basin_id;
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check if all filled
+        all_filled = true;
+        for row in 0..map.len() {
+            for col in 0..map[0].len() {
+                if map[row][col].value != 9 && !map[row][col].claimed {
+                    all_filled = false;
+                    continue;
+                }
+            }
+        }
+    }
+    for row in map.iter() {
+        for item in row.iter() {
+            print!("{} ", item.basin_id);
+        }
+        println!();
+    }
+    map
+}
+
+fn count_basins(map: &[Vec<BasinMember>]) -> Vec<i32> {
+    let member_occurences: Vec<u32> = map
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|member| member.basin_id)
+                .collect::<Vec<u32>>()
+        })
+        .flatten()
+        .collect::<Vec<u32>>();
+    let maximum = member_occurences.iter().max().unwrap();
+    let mut bins = vec![0; *maximum as usize + 1];
+    member_occurences.iter().for_each(|&occ| {
+        bins[occ as usize] += 1;
+    });
+
+    // removing index 0 which is the 9's
+    bins.remove(0);
+    bins
 }
 
 pub fn is_complete() -> bool {
-    false
+    true
 }
 
 #[cfg(test)]
@@ -218,7 +292,6 @@ mod tests {
         ];
 
         let low_points = find_low_points(&data);
-        println!("low points: {:?}", low_points);
 
         assert!(low_points.contains(&Point {
             value: 1u8,
@@ -260,5 +333,37 @@ mod tests {
         let map = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
 
         println!("map: {:?}", convert_map_from_int_to_members(map));
+    }
+
+    #[test]
+    fn test_count_bins() {
+        let map = vec![
+            vec![
+                BasinMember {
+                    basin_id: 1,
+                    claimed: true,
+                    value: 5,
+                },
+                BasinMember {
+                    basin_id: 1,
+                    claimed: true,
+                    value: 6,
+                },
+            ],
+            vec![
+                BasinMember {
+                    basin_id: 1,
+                    claimed: true,
+                    value: 7,
+                },
+                BasinMember {
+                    basin_id: 2,
+                    claimed: true,
+                    value: 8,
+                },
+            ],
+        ];
+
+        assert_eq!(count_basins(&map), vec![0, 3, 1])
     }
 }
