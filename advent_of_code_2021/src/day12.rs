@@ -97,77 +97,134 @@ use std::fmt;
 /// How many paths through this cave system are there that visit small caves at most once?
 pub fn part1() {
     let data = read_from_data_dir("day12.txt").unwrap();
-    let cave_map = create_map(data);
-    let paths = find_unique_paths(cave_map);
+    let (cave_map, lookup_name_table) = create_map(data);
+    let paths = find_unique_paths(cave_map, lookup_name_table);
+    println!(
+        "Day12:1. The number of unique paths is {}",
+        paths.iter().count()
+    );
 }
 
-fn create_map(data: String) -> NodeMap {
-    let mut map: HashMap<String, Node> = HashMap::new();
+fn create_map(data: String) -> (NodeMap, HashMap<usize, String>) {
+    let mut map: HashMap<usize, Node> = HashMap::new();
+    let mut lookup_table: HashMap<usize, String> = HashMap::new();
+    let mut id = 1;
 
     data.lines().for_each(|line| {
-        let nodes: Vec<String> = line.split("-").map(|node| node.trim()).collect();
-        assert_eq!(nodes.len(), 2);
+        let node_names: Vec<String> = line
+            .split("-")
+            .map(|node| node.trim().to_string())
+            .collect();
+        assert_eq!(node_names.len(), 2);
 
-        let node1 = &mut *map.entry(nodes[0]).or_insert(Node::new(nodes[0]));
-        let _ = node1.add_destination(nodes[1]);
+        // get or make ID
+        let (mut id_node_0, mut id_node_1): (usize, usize) = (0, 0);
+        if let Some((id0, _node0)) = lookup_table
+            .iter()
+            .filter(|(&_k, v)| &&node_names[0] == v)
+            .nth(0)
+        {
+            id_node_0 = *id0;
+        } else {
+            id_node_0 = id;
+            id += 1;
+            lookup_table.insert(id_node_0, node_names[0].clone());
+        }
 
-        let node2 = &mut *map.entry(nodes[1]).or_insert(Node::new(nodes[1]));
-        let _ = node2.add_destination(nodes[0]);
+        if let Some((id1, _node1)) = lookup_table
+            .iter()
+            .filter(|(&_k, v)| &&node_names[1] == v)
+            .nth(0)
+        {
+            id_node_1 = *id1;
+        } else {
+            id_node_1 = id;
+            id += 1;
+            lookup_table.insert(id_node_1, node_names[1].clone());
+        }
+
+        // enter into nodemap
+
+        let node1 = &mut *map
+            .entry(id_node_0)
+            .or_insert(Node::new(node_names[0].clone(), id_node_0));
+        let _ = node1.add_destination(id_node_1);
+
+        let node2 = &mut *map
+            .entry(id_node_1)
+            .or_insert(Node::new(node_names[1].clone(), id_node_1));
+        let _ = node2.add_destination(id_node_0);
     });
 
-    assert_eq!(map.contains_key("start"), true);
-    assert_eq!(map.contains_key("end"), true);
-
-    NodeMap { map: map }
+    (NodeMap { map: map }, lookup_table)
 }
 
-fn find_unique_paths(nodemap: NodeMap) -> Vec<String> {
-    let mut path_list = Vec::new();
-    unique_path(nodemap, "start".into(), "start".into(), &mut path_list);
-    path_list
+fn find_unique_paths(nodemap: NodeMap, lookup_name_table: HashMap<usize, String>) -> Vec<String> {
+    let start_node: usize = lookup_name_table
+        .iter()
+        .filter(|(_k, v)| v == &&"start".to_string())
+        .map(|(&k, _v)| k)
+        .nth(0)
+        .unwrap();
+    let end_node: usize = lookup_name_table
+        .iter()
+        .filter(|(_k, v)| v == &&"end".to_string())
+        .map(|(&k, _v)| k)
+        .nth(0)
+        .unwrap();
+    unique_path(nodemap, start_node, end_node)
 }
 
-fn unique_path(nodemap: NodeMap, current_node: String, path: String, path_list: &mut Vec<String>) {
-    let current_path = format!("{}->{}", path, current_node);
-    if current_node == "end" {
+fn unique_path(mut nodemap: NodeMap, current_id: usize, end_node: usize) -> Vec<String> {
+    // this nodemap is mine to alter
+    (*nodemap.map.get_mut(&current_id).unwrap()).visit();
+    if current_id == end_node {
         // got to end, record path
-        if !path_list.contains(&current_path) {
-            path_list.push(current_path);
-        }
-    } else if nodemap.map.values().all(|node| !node.can_visit()) {
+        vec![current_id.to_string()]
+    } else if (*nodemap.map.get(&current_id).unwrap())
+        .destinations
+        .iter()
+        .map(|id| nodemap.map.get(id).unwrap())
+        .all(|node| !node.can_visit())
+    {
         // stuck
-        return;
+        Vec::new()
     } else {
         // still going
-        nodemap
-            .map
-            .values()
-            .filter(|node| node.can_visit())
-            .for_each(|node| {
+        let mut paths = Vec::new();
+        (*nodemap.map.get(&current_id).unwrap())
+            .destinations
+            .iter()
+            .map(|id| (id, nodemap.map.get(id).unwrap()))
+            .filter(|(_id, node)| node.can_visit())
+            .for_each(|(&id, _node)| {
                 let map_copy = nodemap.clone();
-                let node_copy = map_copy.map.get(&node.name).unwrap();
-                *node_copy.visit();
-                unique_path(map_copy, node.name, current_path, path_list);
+                let paths_produced = unique_path(map_copy, id, end_node);
+                paths_produced.iter().for_each(|s| {
+                    paths.push(format!("{}->{}", current_id, s));
+                });
             });
+
+        paths
     }
 }
 
 use std::collections::HashMap;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 struct NodeMap {
-    map: HashMap<String, Node>,
+    map: HashMap<usize, Node>,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 struct Node {
-    destinations: Vec<String>,
+    destinations: Vec<usize>,
     visits_left: usize,
-    name: String,
+    id: usize,
 }
 
 impl Node {
-    fn new(name: String) -> Node {
+    fn new(name: String, id: usize) -> Node {
         // name is uppercase
         let mut visits_left = 1;
         if name == name.to_uppercase() {
@@ -176,13 +233,13 @@ impl Node {
         Node {
             destinations: Vec::new(),
             visits_left: visits_left,
-            name: String::from(name),
+            id: id,
         }
     }
 
-    fn add_destination(&mut self, name: String) {
-        if !self.destinations.contains(&name) {
-            self.destinations.push(name);
+    fn add_destination(&mut self, id: usize) {
+        if !self.destinations.contains(&id) {
+            self.destinations.push(id);
         }
     }
 
@@ -209,6 +266,37 @@ mod tests {
     fn test_create_map() {
         let data: String = "start-A
         start-b
+        start-A
+        A-end
+        b-end"
+            .to_string();
+
+        let (nodemap, lookup_table) = create_map(data);
+
+        println!("map:{:?}", nodemap);
+        println!("lookup:{:?}", lookup_table);
+        assert_eq!(1, 1);
+    }
+
+    #[test]
+    fn test_find_paths() {
+        let data: String = "start-A
+        start-b
+        start-A
+        A-end
+        b-end"
+            .to_string();
+
+        let (cave_map, lookup_table) = create_map(data);
+
+        let paths = find_unique_paths(cave_map, lookup_table);
+        assert_eq!(paths, vec!["1->2->4", "1->3->4"]);
+    }
+
+    #[test]
+    fn test_find_paths_2() {
+        let data: String = "start-A
+        start-b
         A-c
         A-b
         b-d
@@ -216,9 +304,24 @@ mod tests {
         b-end"
             .to_string();
 
-        let map = create_map(data);
+        let (cave_map, lookup_table) = create_map(data);
 
-        println!("map:{:?}", map);
-        assert_eq!(1, 2);
+        let mut paths = find_unique_paths(cave_map, lookup_table);
+        println!("paths: {:?}", paths);
+        let mut correct = vec![
+            "1->2->3->2->4->2->6",
+            "1->2->3->2->6", //
+            "1->2->3->6",    //
+            "1->2->4->2->3->2->6",
+            "1->2->4->2->3->6", //
+            "1->2->4->2->6",    //
+            "1->2->6",          //
+            "1->3->2->4->2->6", //
+            "1->3->2->6",       //
+            "1->3->6",          //
+        ];
+        correct.sort_unstable();
+        paths.sort_unstable();
+        assert!(paths.iter().all(|s| correct.contains(&&s[..])) && paths.len() == correct.len());
     }
 }

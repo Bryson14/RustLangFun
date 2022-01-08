@@ -364,6 +364,6 @@ mod tests {
             ],
         ];
 
-        assert_eq!(count_basins(&map), vec![0, 3, 1])
+        assert_eq!(count_basins(&map), vec![3, 1])
     }
 }
