@@ -97,7 +97,7 @@ use std::fmt;
 /// How many paths through this cave system are there that visit small caves at most once?
 pub fn part1() {
     let data = read_from_data_dir("day12.txt").unwrap();
-    let (cave_map, lookup_name_table) = create_map(data, 1);
+    let (cave_map, lookup_name_table) = create_map(data);
     let paths = find_unique_paths(cave_map, lookup_name_table);
     println!(
         "Day12:1. The number of unique paths is {}",
@@ -105,7 +105,7 @@ pub fn part1() {
     );
 }
 
-fn create_map(data: String, small_cave_visits: usize) -> (NodeMap, HashMap<usize, String>) {
+fn create_map(data: String) -> (NodeMap, HashMap<usize, String>) {
     let mut map: HashMap<usize, Node> = HashMap::new();
     let mut lookup_table: HashMap<usize, String> = HashMap::new();
     let mut id = 1;
@@ -145,20 +145,14 @@ fn create_map(data: String, small_cave_visits: usize) -> (NodeMap, HashMap<usize
 
         // enter into nodemap
 
-        let node1 = &mut *map.entry(id_node_0).or_insert(Node::new(
-            node_names[0].clone(),
-            id_node_0,
-            small_cave_visits,
-            node_names[0] == "start" || node_names[0] == "end",
-        ));
+        let node1 = &mut *map
+            .entry(id_node_0)
+            .or_insert(Node::new(node_names[0].clone(), id_node_0));
         let _ = node1.add_destination(id_node_1);
 
-        let node2 = &mut *map.entry(id_node_1).or_insert(Node::new(
-            node_names[1].clone(),
-            id_node_1,
-            small_cave_visits,
-            node_names[0] == "start" || node_names[0] == "end",
-        ));
+        let node2 = &mut *map
+            .entry(id_node_1)
+            .or_insert(Node::new(node_names[1].clone(), id_node_1));
         let _ = node2.add_destination(id_node_0);
     });
 
@@ -230,13 +224,9 @@ struct Node {
 }
 
 impl Node {
-    fn new(name: String, id: usize, small_cave_visits: usize, is_start_or_end: bool) -> Node {
+    fn new(name: String, id: usize) -> Node {
         // name is uppercase
-        assert!(small_cave_visits == 1 || small_cave_visits == 2);
-        let mut visits_left = small_cave_visits;
-        if is_start_or_end {
-            visits_left = 1;
-        }
+        let mut visits_left = 1;
         if name == name.to_uppercase() {
             // can visit large caves any number of times.
             visits_left = usize::MAX;
@@ -265,7 +255,7 @@ impl Node {
 
 pub fn part2() {
     let data = read_from_data_dir("day12.txt").unwrap();
-    let (cave_map, lookup_name_table) = create_map(data, 2);
+    let (cave_map, lookup_name_table) = create_map(data);
     let paths = find_unique_paths(cave_map, lookup_name_table);
     println!(
         "Day12:2. The number of unique paths is visiting small caves twice {}",
@@ -290,11 +280,27 @@ mod tests {
         b-end"
             .to_string();
 
-        let (nodemap, lookup_table) = create_map(data, 1);
+        let (nodemap, lookup_table) = create_map(data);
 
         println!("map:{:?}", nodemap);
         println!("lookup:{:?}", lookup_table);
         assert_eq!(1, 1);
+    }
+
+    #[test]
+    fn test_create_map_2() {
+        let data: String = "start-A
+        start-b
+        start-A
+        A-end
+        b-end"
+            .to_string();
+
+        let (nodemap, lookup_table) = create_map(data);
+
+        println!("map:{:?}", nodemap);
+        println!("lookup:{:?}", lookup_table);
+        assert_eq!(1, 2);
     }
 
     #[test]
@@ -306,7 +312,7 @@ mod tests {
         b-end"
             .to_string();
 
-        let (cave_map, lookup_table) = create_map(data, 1);
+        let (cave_map, lookup_table) = create_map(data);
 
         let paths = find_unique_paths(cave_map, lookup_table);
         assert_eq!(paths, vec!["1->2->4", "1->3->4"]);
@@ -323,7 +329,7 @@ mod tests {
         b-end"
             .to_string();
 
-        let (cave_map, lookup_table) = create_map(data, 1);
+        let (cave_map, lookup_table) = create_map(data);
 
         let mut paths = find_unique_paths(cave_map, lookup_table);
         println!("paths: {:?}", paths);
@@ -351,7 +357,7 @@ mod tests {
         b-end"
             .to_string();
 
-        let (cave_map, lookup_table) = create_map(data, 1);
+        let (cave_map, lookup_table) = create_map(data);
 
         let paths = find_unique_paths(cave_map, lookup_table);
         assert_eq!(paths, vec!["1->2->4", "1->3->4"]);
@@ -368,7 +374,7 @@ mod tests {
         b-end"
             .to_string();
 
-        let (cave_map, lookup_table) = create_map(data, 2);
+        let (cave_map, lookup_table) = create_map(data);
 
         let mut paths = find_unique_paths(cave_map, lookup_table);
         let mut correct = vec![
@@ -377,37 +383,37 @@ mod tests {
             "1->2->3->2->3->6",
             "1->2->3->2->4->2->3->2->6",
             "1->2->3->2->4->2->3->6",
-            "1->2->3->2->4->2->4->2->6",
-            "1->2->3->2->4->2->6",
-            "1->2->3->2->6",
+            "1->2->3->2->4->2->4->2->6", //
+            "1->2->3->2->4->2->6",       //
+            "1->2->3->2->6",             //
             "1->2->3->5->3->2->4->2->6",
             "1->2->3->5->3->2->6",
             "1->2->3->5->3->6",
-            "1->2->3->6",
+            "1->2->3->6", //
             "1->2->4->2->3->2->3->2->6",
             "1->2->4->2->3->2->3->6",
-            "1->2->4->2->3->2->4->2->6",
-            "1->2->4->2->3->2->6",
+            "1->2->4->2->3->2->4->2->6", //
+            "1->2->4->2->3->2->6",       //
             "1->2->4->2->3->5->3->2->6",
             "1->2->4->2->3->5->3->6",
-            "1->2->4->2->3->6",
-            "1->2->4->2->4->2->3->2->6",
-            "1->2->4->2->4->2->3->6",
-            "1->2->4->2->4->2->6",
-            "1->2->4->2->6",
-            "1->2->6",
+            "1->2->4->2->3->6",          //
+            "1->2->4->2->4->2->3->2->6", //
+            "1->2->4->2->4->2->3->6",    //
+            "1->2->4->2->4->2->6",       //
+            "1->2->4->2->6",             //
+            "1->2->6",                   //
             "1->3->2->3->2->4->2->6",
             "1->3->2->3->2->6",
             "1->3->2->3->6",
             "1->3->2->4->2->3->2->6",
             "1->3->2->4->2->3->6",
-            "1->3->2->4->2->4->2->6",
-            "1->3->2->4->2->6",
-            "1->3->2->6",
+            "1->3->2->4->2->4->2->6", //
+            "1->3->2->4->2->6",       //
+            "1->3->2->6",             //
             "1->3->5->3->2->4->2->6",
             "1->3->5->3->2->6",
             "1->3->5->3->6",
-            "1->3->6",
+            "1->3->6", //
         ];
         println!("len correct {}, len paths {}", correct.len(), paths.len());
         for s in paths.iter() {
