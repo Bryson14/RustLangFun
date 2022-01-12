@@ -331,9 +331,9 @@ mod tests {
 
         let (cave_map, lookup_table) = create_map(data);
 
-        let mut paths = find_unique_paths(cave_map, lookup_table);
+        let paths = find_unique_paths(cave_map, lookup_table);
         println!("paths: {:?}", paths);
-        let mut correct = vec![
+        let correct = vec![
             "1->2->3->2->4->2->6", //
             "1->2->3->2->6",       //
             "1->2->3->6",          //
@@ -376,8 +376,8 @@ mod tests {
 
         let (cave_map, lookup_table) = create_map(data);
 
-        let mut paths = find_unique_paths(cave_map, lookup_table);
-        let mut correct = vec![
+        let paths = find_unique_paths(cave_map, lookup_table);
+        let correct = vec![
             "1->2->3->2->3->2->4->2->6",
             "1->2->3->2->3->2->6",
             "1->2->3->2->3->6",
