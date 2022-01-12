@@ -111,7 +111,7 @@ pub fn part1() {
     // println!("paper: {}", origami_paper);
 }
 
-fn read_origami_paper(s: String) -> (Vec<(i32, i32)>, Vec<Cut>) {
+fn read_origami_paper(s: String) -> (OrgPaper, Vec<Cut>) {
     let mut positions: Vec<(i32, i32)> = Vec::new();
     let mut cuts: Vec<Cut> = Vec::new();
     let position_re = Regex::new(r"^[0-9]+,[0-9]+$").unwrap();
@@ -138,7 +138,7 @@ fn read_origami_paper(s: String) -> (Vec<(i32, i32)>, Vec<Cut>) {
         }
     }
 
-    (positions, cuts)
+    (OrgPaper::new(positions), cuts)
 }
 
 #[derive(Debug, PartialEq)]
