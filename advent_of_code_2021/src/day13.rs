@@ -105,10 +105,20 @@ use std::fmt;
 ///
 /// How many dots are visible after completing just the first fold instruction on your transparent paper?
 pub fn part1() {
-    let (positions_of_dots, _list_of_cuts) =
-        read_origami_paper(read_from_data_dir("day13.txt").unwrap());
-    let _origami_paper = OrgPaper::from_positions(positions_of_dots);
+    let (org_paper, _list_of_cuts) = read_origami_paper(read_from_data_dir("day13.txt").unwrap());
     // println!("paper: {}", origami_paper);
+    let paper = fold_paper(org_paper, _list_of_cuts);
+}
+
+fn fold_paper(paper: OrgPaper, cuts: Vec<Cut>) -> OrgPaper {
+    for cut in cuts.iter() {
+        let paper = make_fold(&paper, *cut);
+    }
+    paper
+}
+
+fn make_fold(paper: &OrgPaper, cut: Cut) -> OrgPaper {
+    OrgPaper { grid: Vec::new() }
 }
 
 fn read_origami_paper(s: String) -> (OrgPaper, Vec<Cut>) {
@@ -137,11 +147,10 @@ fn read_origami_paper(s: String) -> (OrgPaper, Vec<Cut>) {
             println!("Empty Line");
         }
     }
-
     (OrgPaper::new(positions), cuts)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 struct Cut {
     idx: i32,
     x: bool,
@@ -153,7 +162,7 @@ struct OrgPaper {
 }
 
 impl OrgPaper {
-    fn from_positions(positions: Vec<(i32, i32)>) -> OrgPaper {
+    fn new(positions: Vec<(i32, i32)>) -> OrgPaper {
         let max_x = positions.iter().map(|pos| pos.0).max().unwrap();
         let max_y = positions.iter().map(|pos| pos.1).max().unwrap();
 
@@ -199,7 +208,10 @@ mod tests {
         let s = String::from("1,1\n2,2\nfold along x=5\n");
         assert_eq!(
             read_origami_paper(s),
-            (vec![(1, 1), (2, 2)], vec![Cut { idx: 5, x: true }])
+            (
+                OrgPaper::new(vec![(1, 1), (2, 2)]),
+                vec![Cut { idx: 5, x: true }]
+            )
         );
     }
 
@@ -207,6 +219,24 @@ mod tests {
     fn test_org_paper_from_positions() {
         let pos = vec![(1, 1), (0, 0)];
         let grid = vec![vec![true, false], vec![false, true]];
-        assert_eq!(OrgPaper::from_positions(pos), OrgPaper { grid: grid });
+        assert_eq!(OrgPaper::new(pos), OrgPaper { grid: grid });
+    }
+
+    #[test]
+    fn test_org_paper_from_positions_2() {
+        let pos = vec![(1, 1), (0, 0), (2, 2), (0, 2)];
+        let grid = vec![
+            vec![true, false, false],
+            vec![false, true, false],
+            vec![true, false, true],
+        ];
+        assert_eq!(OrgPaper::new(pos), OrgPaper { grid: grid });
+    }
+
+    #[test]
+    fn test_make_fold() {
+        let grid = OrgPaper {
+            grid: vec![vec![true, false], vec![false, true]],
+        };
     }
 }
