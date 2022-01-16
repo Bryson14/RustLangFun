@@ -118,6 +118,7 @@ fn fold_paper(paper: OrgPaper, cuts: Vec<Cut>) -> OrgPaper {
 }
 
 fn make_fold(paper: &OrgPaper, cut: Cut) -> OrgPaper {
+    let a = 5;
     OrgPaper { grid: Vec::new() }
 }
 
