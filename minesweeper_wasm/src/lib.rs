@@ -65,7 +65,7 @@ impl MineSweeper {
     /// the front end will give the col and row position of the tile clicked.
     /// This is calculated into the 1-d vector and the state of the game is then updated
     /// True = Game is still going. False = game ended because of the update
-    pub fn clicked(&mut self, col: usize, row: usize) -> bool {
+    pub fn click(&mut self, col: usize, row: usize) -> bool {
         let idx = self.get_idx(col, row);
         match self.state_vec[idx] {
             // player clicked on an uncovered spot, empty, or flagged spot. Do nothing.
@@ -115,11 +115,14 @@ impl MineSweeper {
     }
 
     fn get_idx_bounds_checked(&self, col: isize, row: isize) -> Option<usize> {
-        assert!(self.check_bounds(&col, &row));
+        if !self.check_bounds(&col, &row) {
+            return None;
+        }
+
         Some(self.get_idx(col as usize, row as usize))
     }
 
-    /// for uncovering empty neighbors
+    /// for uncovering empty neighbors and recursively uncovering their empty neighbors
     fn uncover_empty_neighbors(&mut self, col: usize, row: usize) {
         // break case for recursion
         if self.state_vec[self.get_idx(col, row)] == SpotState::Empty {
@@ -131,13 +134,11 @@ impl MineSweeper {
             self.state_vec[idx] = SpotState::Empty;
         }
 
-        let inbound_neighbors = POSSIBLE_NEIGHBORS
-            .iter()
-            .map(|[x, y]| [x + col as isize, y + row as isize])
-            .filter(|[x, y]| self.check_bounds(x, y))
-            .for_each(|[x, y]| {
-                self.uncover_empty_neighbors(x.clone() as usize, y.clone() as usize)
-            });
+        // let inbound_neighbors = POSSIBLE_NEIGHBORS
+        //     .iter()
+        //     .map(|[x, y]| [x + col as isize, y + row as isize])
+        //     .filter(|[x, y]| self.check_bounds(x, y))
+        //     .for_each(|[x, y]| self.uncover_empty_neighbors(x as usize, y as usize));
     }
 
     /// for checking the bounds of a given row and col since neighbors are blindly checked.
@@ -164,6 +165,39 @@ impl MineSweeper {
             .count();
 
         mine_neighbors
+    }
+
+    pub fn get_total_bombs(&self) -> usize {
+        self.bomb_vec.iter().filter(|&&x| x == Spot::Mine).count()
+    }
+
+    pub fn get_hidden_bombs(&self) -> usize {
+        self.bomb_vec
+            .iter()
+            .enumerate()
+            .filter(|(idx, x)| **x == Spot::Mine && self.state_vec[*idx] == SpotState::Covered)
+            .count()
+    }
+}
+
+impl std::fmt::Display for MineSweeper {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let mut output = String::new();
+        output.push('\n');
+        for row in 0..self.height {
+            for col in 0..self.width {
+                let idx = self.get_idx(col, row);
+                match self.state_vec[idx] {
+                    SpotState::Covered => output.push('🟩'),
+                    SpotState::Flagged => output.push('🚩'),
+                    SpotState::Empty => output.push('⬜'),
+                    SpotState::Exploded => output.push('💣'),
+                    SpotState::Numbered(number) => output.push_str(&format!(" {} ", number)),
+                }
+            }
+            output.push('\n')
+        }
+        write!(f, "{}", output)
     }
 }
 
@@ -234,5 +268,29 @@ mod tests {
         let mut ms = MineSweeper::new(5, 5, 0);
         ms.bomb_vec[4] = Spot::Mine;
         assert_eq!(1, ms.get_mine_neighbor_count(5, 0));
+    }
+
+    #[test]
+    fn test_get_total_bomb() {
+        let ms = MineSweeper::new(5, 5, 7);
+        assert_eq!(7, ms.get_total_bombs());
+    }
+
+    #[test]
+    fn test_get_hidden_bombs() {
+        let mut ms = MineSweeper::new(5, 5, 0);
+        ms.bomb_vec[1] = Spot::Mine;
+        assert_eq!(1, ms.get_hidden_bombs());
+    }
+
+    #[test]
+    fn test_get_hidden_bombs_2() {
+        let mut ms = MineSweeper::new(5, 5, 0);
+        ms.bomb_vec[1] = Spot::Mine;
+        ms.bomb_vec[2] = Spot::Mine;
+        ms.bomb_vec[0] = Spot::Mine;
+        ms.click(0, 0);
+        assert_eq!(2, ms.get_hidden_bombs());
+        assert_eq!(3, ms.get_total_bombs());
     }
 }
