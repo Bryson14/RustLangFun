@@ -134,11 +134,15 @@ impl MineSweeper {
             self.state_vec[idx] = SpotState::Empty;
         }
 
-        // let inbound_neighbors = POSSIBLE_NEIGHBORS
-        //     .iter()
-        //     .map(|[x, y]| [x + col as isize, y + row as isize])
-        //     .filter(|[x, y]| self.check_bounds(x, y))
-        //     .for_each(|[x, y]| self.uncover_empty_neighbors(x as usize, y as usize));
+        // copying height and width so that for_each can borrow self in the closure.
+        let (width, height) = (self.width, self.height);
+        let inbound_neighbors = POSSIBLE_NEIGHBORS
+        .iter()
+        .map(|[x, y]| [x + col as isize, y + row as isize])
+        .filter(|[x, y]| Self::check_bounds(x, y, width, height))
+        .for_each(|[x, y]| {
+            self.uncover_empty_neighbors(x.clone() as usize, y.clone() as usize)
+        });
     }
 
     /// for checking the bounds of a given row and col since neighbors are blindly checked.
