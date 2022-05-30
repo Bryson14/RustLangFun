@@ -137,12 +137,10 @@ impl MineSweeper {
         // copying height and width so that for_each can borrow self in the closure.
         let (width, height) = (self.width, self.height);
         let inbound_neighbors = POSSIBLE_NEIGHBORS
-        .iter()
-        .map(|[x, y]| [x + col as isize, y + row as isize])
-        .filter(|[x, y]| Self::check_bounds(x, y, width, height))
-        .for_each(|[x, y]| {
-            self.uncover_empty_neighbors(x.clone() as usize, y.clone() as usize)
-        });
+            .iter()
+            .map(|[x, y]| [x + col as isize, y + row as isize])
+            .filter(|[x, y]| check_bounds_func(*x, *y, width, height))
+            .for_each(|[x, y]| self.uncover_empty_neighbors(x as usize, y as usize));
     }
 
     /// for checking the bounds of a given row and col since neighbors are blindly checked.
@@ -162,9 +160,7 @@ impl MineSweeper {
 
         let mine_neighbors = POSSIBLE_NEIGHBORS
             .iter()
-            .map(|[x, y]| self.get_idx_bounds_checked(col + x, row + y))
-            .filter(|ans| ans.is_some())
-            .map(|idx| idx.unwrap())
+            .filter_map(|[x, y]| self.get_idx_bounds_checked(col + x, row + y))
             .filter(|idx| self.bomb_vec[idx.to_owned()] == Spot::Mine)
             .count();
 
@@ -182,6 +178,13 @@ impl MineSweeper {
             .filter(|(idx, x)| **x == Spot::Mine && self.state_vec[*idx] == SpotState::Covered)
             .count()
     }
+}
+
+fn check_bounds_func(col: isize, row: isize, width: usize, height: usize) -> bool {
+    if col < 0 || row < 0 || col >= (width as isize) || row >= (height as isize) {
+        return false;
+    }
+    true
 }
 
 impl std::fmt::Display for MineSweeper {
