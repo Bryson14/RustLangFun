@@ -24,7 +24,7 @@ const POSSIBLE_NEIGHBORS: [[isize; 2]; 8] = [
 /// Minesweeper struct that holds the data for the game
 pub struct MineSweeper {
     /// map of bombs or empty spaces. Map is a one dimensional array that is calculated to index as if it was a 2d array
-    bomb_vec: Vec<Spot>,
+    mine_vec: Vec<Spot>,
     /// map of the state of each tile.
     state_vec: Vec<SpotState>,
     width: usize,
@@ -39,14 +39,14 @@ impl MineSweeper {
             "Cannot have more mines than spaces"
         );
 
-        let mut bomb_vec: Vec<Spot> = vec![Spot::Safe; width * height];
+        let mut mine_vec: Vec<Spot> = vec![Spot::Safe; width * height];
 
         let mut mines_inserted = 0;
         let mut rng = thread_rng();
         while mines_inserted < mine_count {
             let random_idx = rng.gen_range(0..width * height);
-            if let Spot::Safe = bomb_vec[random_idx] {
-                bomb_vec[random_idx] = Spot::Mine;
+            if let Spot::Safe = mine_vec[random_idx] {
+                mine_vec[random_idx] = Spot::Mine;
                 mines_inserted += 1;
             }
             println!("Random number #{}: {}", mines_inserted, random_idx);
@@ -55,7 +55,7 @@ impl MineSweeper {
         let state_vec: Vec<SpotState> = vec![SpotState::Covered; width * height];
 
         MineSweeper {
-            bomb_vec,
+            mine_vec,
             state_vec,
             width,
             height,
@@ -71,12 +71,12 @@ impl MineSweeper {
             // player clicked on an uncovered spot, empty, or flagged spot. Do nothing.
             SpotState::Flagged | SpotState::Empty | SpotState::Numbered(_) => true,
 
-            // player clicked on bomb, and this should happen
+            // player clicked on bomb, and this shouldn't happen but is controlled by the ui
             SpotState::Exploded => false,
 
             // uncovering a tile
             SpotState::Covered => {
-                if let Spot::Mine = self.bomb_vec[idx] {
+                if let Spot::Mine = self.mine_vec[idx] {
                     self.state_vec[idx] = SpotState::Exploded;
                     return false;
                 }
@@ -125,13 +125,27 @@ impl MineSweeper {
     /// for uncovering empty neighbors and recursively uncovering their empty neighbors
     fn uncover_empty_neighbors(&mut self, col: usize, row: usize) {
         // break case for recursion
-        if self.state_vec[self.get_idx(col, row)] == SpotState::Empty {
+
+        let idx = self.get_idx(col, row);
+        let spot_state = self.state_vec[idx];
+        let mine_state = self.mine_vec[idx];
+
+        println!(
+            "uncover empty for col: {}, row: {}, state: {:?}",
+            col, row, spot_state
+        );
+        // if spot is a mine or the spot is not covered, then return early.
+        if spot_state != SpotState::Covered || mine_state == Spot::Mine {
             return;
         }
 
-        if self.get_mine_neighbor_count(col, row) == 0 {
-            let idx = self.get_idx(col, row);
+        let mine_neighbors = self.get_mine_neighbor_count(col, row);
+
+        if mine_neighbors == 0 {
             self.state_vec[idx] = SpotState::Empty;
+        } else {
+            self.state_vec[idx] = SpotState::Numbered(mine_neighbors);
+            return;
         }
 
         // copying height and width so that for_each can borrow self in the closure.
@@ -161,21 +175,23 @@ impl MineSweeper {
         let mine_neighbors = POSSIBLE_NEIGHBORS
             .iter()
             .filter_map(|[x, y]| self.get_idx_bounds_checked(col + x, row + y))
-            .filter(|idx| self.bomb_vec[idx.to_owned()] == Spot::Mine)
+            .filter(|idx| self.mine_vec[idx.to_owned()] == Spot::Mine)
             .count();
 
         mine_neighbors
     }
 
     pub fn get_total_bombs(&self) -> usize {
-        self.bomb_vec.iter().filter(|&&x| x == Spot::Mine).count()
+        self.mine_vec.iter().filter(|&&x| x == Spot::Mine).count()
     }
 
     pub fn get_hidden_bombs(&self) -> usize {
-        self.bomb_vec
+        self.mine_vec
             .iter()
             .enumerate()
-            .filter(|(idx, x)| **x == Spot::Mine && self.state_vec[*idx] == SpotState::Covered)
+            .filter(|(idx, spot)| {
+                **spot == Spot::Mine && self.state_vec[*idx] == SpotState::Covered
+            })
             .count()
     }
 }
@@ -214,7 +230,7 @@ enum Spot {
     Safe,
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 enum SpotState {
     Covered,         // covered tile
     Flagged,         // covered tile with flag on top. Cannot be accidentally clicked
@@ -236,7 +252,7 @@ mod tests {
     #[test]
     fn test_getting_neighbors_1() {
         let mut ms = MineSweeper::new(5, 5, 0);
-        ms.bomb_vec[0] = Spot::Mine;
+        ms.mine_vec[0] = Spot::Mine;
         assert_eq!(1, ms.get_mine_neighbor_count(0, 1));
         assert_eq!(1, ms.get_mine_neighbor_count(1, 1));
         assert_eq!(1, ms.get_mine_neighbor_count(1, 0));
@@ -245,7 +261,7 @@ mod tests {
     #[test]
     fn test_getting_neighbors_2() {
         let mut ms = MineSweeper::new(5, 5, 0);
-        ms.bomb_vec[12] = Spot::Mine;
+        ms.mine_vec[12] = Spot::Mine;
         assert_eq!(0, ms.get_mine_neighbor_count(0, 1));
         assert_eq!(1, ms.get_mine_neighbor_count(2, 3));
         assert_eq!(0, ms.get_mine_neighbor_count(2, 2));
@@ -254,8 +270,8 @@ mod tests {
     #[test]
     fn test_getting_neighbors_3() {
         let mut ms = MineSweeper::new(5, 5, 0);
-        ms.bomb_vec[0] = Spot::Mine;
-        ms.bomb_vec[1] = Spot::Mine;
+        ms.mine_vec[0] = Spot::Mine;
+        ms.mine_vec[1] = Spot::Mine;
         assert_eq!(2, ms.get_mine_neighbor_count(0, 1));
         assert_eq!(2, ms.get_mine_neighbor_count(1, 1));
         assert_eq!(1, ms.get_mine_neighbor_count(2, 1));
@@ -265,7 +281,7 @@ mod tests {
     #[should_panic]
     fn test_getting_neighbors_bad_input() {
         let mut ms = MineSweeper::new(5, 5, 0);
-        ms.bomb_vec[4] = Spot::Mine;
+        ms.mine_vec[4] = Spot::Mine;
         assert_eq!(0, ms.get_mine_neighbor_count(15, 98));
     }
 
@@ -273,7 +289,7 @@ mod tests {
     #[should_panic]
     fn test_getting_neighbors_bad_input_2() {
         let mut ms = MineSweeper::new(5, 5, 0);
-        ms.bomb_vec[4] = Spot::Mine;
+        ms.mine_vec[4] = Spot::Mine;
         assert_eq!(1, ms.get_mine_neighbor_count(5, 0));
     }
 
@@ -286,18 +302,87 @@ mod tests {
     #[test]
     fn test_get_hidden_bombs() {
         let mut ms = MineSweeper::new(5, 5, 0);
-        ms.bomb_vec[1] = Spot::Mine;
+        ms.mine_vec[1] = Spot::Mine;
         assert_eq!(1, ms.get_hidden_bombs());
     }
 
     #[test]
     fn test_get_hidden_bombs_2() {
         let mut ms = MineSweeper::new(5, 5, 0);
-        ms.bomb_vec[1] = Spot::Mine;
-        ms.bomb_vec[2] = Spot::Mine;
-        ms.bomb_vec[0] = Spot::Mine;
+        ms.mine_vec[1] = Spot::Mine;
+        ms.mine_vec[2] = Spot::Mine;
+        ms.mine_vec[0] = Spot::Mine;
         ms.click(0, 0);
         assert_eq!(2, ms.get_hidden_bombs());
         assert_eq!(3, ms.get_total_bombs());
+    }
+
+    #[test]
+    fn test_uncover_neighbors_1() {
+        let mut ms = MineSweeper::new(5, 5, 0);
+        ms.mine_vec[0] = Spot::Mine;
+        assert_eq!(ms.state_vec, vec![SpotState::Covered; 25]);
+        ms.click(4, 4);
+
+        assert_eq!(ms.state_vec[ms.get_idx(4, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(1, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(0, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(4, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(1, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(0, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(4, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(1, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(0, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(4, 1)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 1)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 1)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(1, 1)], SpotState::Numbered(1));
+        assert_eq!(ms.state_vec[ms.get_idx(0, 1)], SpotState::Numbered(1));
+        assert_eq!(ms.state_vec[ms.get_idx(4, 0)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 0)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 0)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(1, 0)], SpotState::Numbered(1));
+        assert_eq!(ms.state_vec[ms.get_idx(0, 0)], SpotState::Covered);
+    }
+
+    #[test]
+    fn test_uncover_neighbors_2() {
+        let mut ms = MineSweeper::new(5, 5, 0);
+        ms.mine_vec[0] = Spot::Mine;
+        ms.mine_vec[1] = Spot::Mine;
+        assert_eq!(ms.state_vec, vec![SpotState::Covered; 25]);
+        ms.click(4, 4);
+
+        assert_eq!(ms.state_vec[ms.get_idx(4, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(1, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(0, 4)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(4, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(1, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(0, 3)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(4, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(1, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(0, 2)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(4, 1)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 1)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 1)], SpotState::Numbered(1));
+        assert_eq!(ms.state_vec[ms.get_idx(1, 1)], SpotState::Numbered(2));
+        assert_eq!(ms.state_vec[ms.get_idx(0, 1)], SpotState::Numbered(2));
+        assert_eq!(ms.state_vec[ms.get_idx(4, 0)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(3, 0)], SpotState::Empty);
+        assert_eq!(ms.state_vec[ms.get_idx(2, 0)], SpotState::Numbered(1));
+        assert_eq!(ms.state_vec[ms.get_idx(1, 0)], SpotState::Covered);
+        assert_eq!(ms.state_vec[ms.get_idx(0, 0)], SpotState::Covered);
     }
 }
