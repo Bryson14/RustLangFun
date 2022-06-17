@@ -1,7 +1,6 @@
 //! # Minesweeper
 //! This is a project to make a minesweeper copy that is used in wasm and ran on the browswer
 //! I'm excited to see what happens
-//!
 
 extern crate js_sys;
 extern crate rand;
