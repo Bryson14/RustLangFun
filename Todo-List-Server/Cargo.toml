@@ -1,5 +1,5 @@
 [package]
-name = "Todo-List-Server"
+name = "todo_list_server"
 version = "0.1.0"
 edition = "2021"
 

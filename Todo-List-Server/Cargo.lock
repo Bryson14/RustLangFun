@@ -3,13 +3,6 @@
 version = 3
 
 [[package]]
-name = "Todo-List-Server"
-version = "0.1.0"
-dependencies = [
- "rocket",
-]
-
-[[package]]
 name = "aead"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1162,6 +1155,13 @@ name = "time-macros"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42657b1a6f4d817cda8e7a0ace261fe0cc946cf3a80314390b22cc61ae080792"
+
+[[package]]
+name = "todo_list_server"
+version = "0.1.0"
+dependencies = [
+ "rocket",
+]
 
 [[package]]
 name = "tokio"
