@@ -7,3 +7,18 @@ edition = "2021"
 
 [dependencies]
 rocket = "0.5.0-rc.2"
+
+[dependencies.rocket_db_pools]
+version = "0.1.0-rc.2"
+features = ["sqlx_sqlite"]
+
+[default.databases.sqlite_logs]
+url = "/RustLangFun/Todo-List-Server/db/"
+
+[default.databases.db_name]
+url = "db.sqlite"
+
+min_connections = 64
+max_connections = 1024
+connect_timeout = 5
+idle_timeout = 120
