@@ -1,3 +1,0 @@
-# Okay
-
-pose
