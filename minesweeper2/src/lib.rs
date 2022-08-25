@@ -1,4 +1,4 @@
-mod minesweeper;
+mod minesweeper2;
 mod utils;
 use wasm_bindgen::prelude::*;
 
