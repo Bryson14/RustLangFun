@@ -1,3 +1,4 @@
+use utils;
 /// Making a wasm friendly file is trickly. only C-style enums are supported which promped the
 /// creation of this second version. The main difference is how the data will be stored.
 ///
@@ -24,6 +25,14 @@
 /// - 13 - An uncovered bomb aka Game Over
 ///
 use wasm_bindgen::prelude::*;
+extern crate web_sys;
+
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
 
 const POSSIBLE_NEIGHBORS: [[isize; 2]; 8] = [
     [-1, -1],
@@ -70,6 +79,7 @@ pub struct MineSweeper {
 #[wasm_bindgen]
 impl MineSweeper {
     pub fn new(width: usize, height: usize, mine_count: usize) -> MineSweeper {
+        utils::set_panic_hook();
         assert!(width * height != 0, "Cannot have a height or width of zero");
         assert!(
             mine_count < width * height,
@@ -100,6 +110,12 @@ impl MineSweeper {
     /// True = Game is still going. False = game ended because of the update
     pub fn click(&mut self, col: usize, row: usize) -> bool {
         let idx = self.get_idx(col, row);
+        log!(
+            "User clicked on col {}, row {}, of state {}",
+            col,
+            row,
+            self.game_state[idx]
+        );
         match self.game_state[idx] {
             // player clicked on an uncovered spot, empty, or flagged spot. Do nothing.
             0..=8 | MINE_FLAGGED | NO_MINE_FLAGGED => true,
@@ -142,6 +158,45 @@ impl MineSweeper {
             }
             _ => false,
         }
+    }
+
+    // gets the total number of bombs in the map
+    pub fn get_total_bombs(&self) -> usize {
+        self.game_state
+            .iter()
+            .filter(|&&x| x == MINE_COVERED || x == MINE_FLAGGED || x == MINE_EXPLODED)
+            .count()
+    }
+
+    // finds the bombs that are hidden and not flagged
+    pub fn get_hidden_bombs(&self) -> usize {
+        self.game_state
+            .iter()
+            .enumerate()
+            .filter(|(idx, spot)| **spot == MINE_COVERED)
+            .count()
+    }
+}
+
+impl MineSweeper {
+    /// getting the total amount of bombs that are immediate neighbors to the spot passed in by col and row.
+    /// max is 8, meaning all its sides and diagonals are mines
+    fn get_mine_neighbor_count(&self, col: usize, row: usize) -> u8 {
+        assert!(self.check_bounds(&(col as isize), &(row as isize)));
+        let col = col as isize;
+        let row = row as isize;
+
+        let mine_neighbors = POSSIBLE_NEIGHBORS
+            .iter()
+            .filter_map(|[x, y]| self.get_idx_bounds_checked(col + x, row + y))
+            .filter(|idx| {
+                self.game_state[idx.to_owned()] == MINE_COVERED
+                    || self.game_state[idx.to_owned()] == MINE_FLAGGED
+                    || self.game_state[idx.to_owned()] == MINE_EXPLODED
+            })
+            .count();
+
+        mine_neighbors as u8
     }
 
     /// assuming zero-indexed grid
@@ -193,43 +248,6 @@ impl MineSweeper {
             return false;
         }
         true
-    }
-
-    /// getting the total amount of bombs that are immediate neighbors to the spot passed in by col and row.
-    /// max is 8, meaning all its sides and diagonals are mines
-    fn get_mine_neighbor_count(&self, col: usize, row: usize) -> u8 {
-        assert!(self.check_bounds(&(col as isize), &(row as isize)));
-        let col = col as isize;
-        let row = row as isize;
-
-        let mine_neighbors = POSSIBLE_NEIGHBORS
-            .iter()
-            .filter_map(|[x, y]| self.get_idx_bounds_checked(col + x, row + y))
-            .filter(|idx| {
-                self.game_state[idx.to_owned()] == MINE_COVERED
-                    || self.game_state[idx.to_owned()] == MINE_FLAGGED
-                    || self.game_state[idx.to_owned()] == MINE_EXPLODED
-            })
-            .count();
-
-        mine_neighbors as u8
-    }
-
-    // gets the total number of bombs in the map
-    pub fn get_total_bombs(&self) -> usize {
-        self.game_state
-            .iter()
-            .filter(|&&x| x == MINE_COVERED || x == MINE_FLAGGED || x == MINE_EXPLODED)
-            .count()
-    }
-
-    // finds the bombs that are hidden and not flagged
-    pub fn get_hidden_bombs(&self) -> usize {
-        self.game_state
-            .iter()
-            .enumerate()
-            .filter(|(idx, spot)| **spot == MINE_COVERED)
-            .count()
     }
 }
 
