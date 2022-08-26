@@ -1,4 +1,3 @@
-use utils;
 /// Making a wasm friendly file is trickly. only C-style enums are supported which promped the
 /// creation of this second version. The main difference is how the data will be stored.
 ///
@@ -26,6 +25,7 @@ use utils;
 ///
 use wasm_bindgen::prelude::*;
 extern crate web_sys;
+use crate::utils::set_panic_hook;
 
 // A macro to provide `println!(..)`-style syntax for `console.log` logging.
 macro_rules! log {
@@ -79,7 +79,7 @@ pub struct MineSweeper {
 #[wasm_bindgen]
 impl MineSweeper {
     pub fn new(width: usize, height: usize, mine_count: usize) -> MineSweeper {
-        utils::set_panic_hook();
+        set_panic_hook();
         assert!(width * height != 0, "Cannot have a height or width of zero");
         assert!(
             mine_count < width * height,
@@ -172,8 +172,7 @@ impl MineSweeper {
     pub fn get_hidden_bombs(&self) -> usize {
         self.game_state
             .iter()
-            .enumerate()
-            .filter(|(idx, spot)| **spot == MINE_COVERED)
+            .filter(|spot| **spot == MINE_COVERED)
             .count()
     }
 }

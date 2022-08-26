@@ -1,19 +1,23 @@
-import { MineSweeper } from "minesweeper2";
+import { MineSweeper } from "../pkg/minesweeper2";
+import { memory } from "wasm-game-of-life/minesweeper2_bg";
 
-const CELL_SIZE = 5; // px
+const CELL_SIZE = 20; // px
 const GRID_COLOR = "#CCCCCC";
 const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#000000";
 
-// Construct the universe, and get its width and height.
-const width = 10;
-const height = 10;
+// Construct the game, and get its width and height.
+const width = 2;
+const height = 2;
 const bombs = 2;
 const game = MineSweeper.new(width, height, bombs);
+const cellsPtr = game.game_state;
+const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
+console.log("ok", cells);
 
 // Give the canvas room for all of our cells and a 1px border
 // around each of them.
-const canvas = document.getElementById("game-of-life-canvas");
+const canvas = document.getElementById("minesweeper-canvas");
 canvas.height = (CELL_SIZE + 1) * height + 1;
 canvas.width = (CELL_SIZE + 1) * width + 1;
 
@@ -62,8 +66,6 @@ max of last 100 = ${Math.round(max)}
   }
 })();
 
-let animationId = null;
-
 const renderLoop = () => {
   fps.render();
 
@@ -71,7 +73,7 @@ const renderLoop = () => {
   drawCells();
 
   for (let i = 0; i < 9; i++) {
-    universe.tick();
+    // universe.tick();
   }
 
   animationId = requestAnimationFrame(renderLoop);
@@ -82,17 +84,6 @@ const isPaused = () => {
 };
 
 const playPauseButton = document.getElementById("play-pause");
-
-const play = () => {
-  playPauseButton.textContent = "⏸";
-  renderLoop();
-};
-
-const pause = () => {
-  playPauseButton.textContent = "▶";
-  cancelAnimationFrame(animationId);
-  animationId = null;
-};
 
 playPauseButton.addEventListener("click", (event) => {
   if (isPaused()) {
@@ -126,7 +117,7 @@ const getIndex = (row, column) => {
 };
 
 const drawCells = () => {
-  const cellsPtr = universe.cells();
+  const cellsPtr = game.game_state;
   const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
 
   ctx.beginPath();
@@ -188,4 +179,5 @@ canvas.addEventListener("click", (event) => {
   drawGrid();
 });
 
-play();
+drawCells();
+drawGrid();
