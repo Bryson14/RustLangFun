@@ -20,5 +20,5 @@ fn pass() {
 #[wasm_bindgen_test]
 fn new_minesweeper() {
     let ms = MineSweeper::new(2, 2, 2);
-    print!("ms: {}", ms);
+    assert_eq!(ms.get_total_bombs(), 2);
 }

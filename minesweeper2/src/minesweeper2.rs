@@ -172,7 +172,7 @@ impl MineSweeper {
     pub fn get_hidden_bombs(&self) -> usize {
         self.game_state
             .iter()
-            .filter(|spot| **spot == MINE_COVERED)
+            .filter(|&&spot| spot == MINE_COVERED)
             .count()
     }
 }
