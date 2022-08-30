@@ -15,16 +15,34 @@
        align-items: center;
        justify-content: center;
      }
-     #fps {
-       white-space: pre;
-       font-family: monospace;
+     #game-grid {
+      margin: 1rem;
+      border: 1px solid lightblue;
+      padding: .5rem;
+      display: grid; 
+      grid-template-columns: auto auto; 
+     }
+     .controls {
+      display: flexbox;
+     }
+     .input-group {
+      margin: 8px 10px 8px 10px;
      }
     </style>
   </head>
   <body>
-    <button id="play-pause">Play Game</button>
-    <div id="fps">FPS</div>
-    <canvas id="minesweeper-canvas"></canvas>
+    <div class="controls">
+    <button id="play-reset">Play Game</button>
+    <div class="input-group">
+    <label for="size-input">Grid Size</label>
+    <input id="size-input" type="number" min="2" max="100">
+  </div>
+  <div class="input-group">
+    <label for="mines-input">Number of Mines</label>
+    <input id="mines-input" type="number" min="1" max="10000">
+  </div>
+    </div>
+    <div id="game-grid" >here</div>
     <script src="./bootstrap.js"></script>
   </body>
 </html>
