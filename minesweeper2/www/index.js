@@ -29,6 +29,8 @@ const state_types = {
 // Construct the game, and get its width and height.
 
 let playing = false;
+let w = 10;
+let h = 10;
 
 const resetBoard = () => {
   let grid = document.getElementById("game-grid");
@@ -53,7 +55,10 @@ const setupBoard = () => {
   game = MineSweeper.new(width, height, mines);
   console.log(`Starting New Game. ${width}x${height} with ${mines} mines.`);
 
-  const cellsPtr = game.game_state;
+  h = height;
+  w = width;
+
+  const cellsPtr = game.state();
   const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
   console.log(`cells: ${cells}`);
 
@@ -74,24 +79,32 @@ playResetButton.addEventListener("click", (event) => {
   }
 });
 
+function clickBox(col, row) {
+  game.click(col, row);
+  const cellsPtr = game.state();
+  const cells = new Uint8Array(memory.buffer, cellsPtr, w * h);
+  console.log(`Click -> cells: ${cells}`);
+}
+
 function createGrid(width, height) {
   const gameGrid = document.getElementById("game-grid");
-  const cells = new Uint8Array(memory.buffer, game.game_state, width * height);
+  const cells = new Uint8Array(memory.buffer, game.game_state, w * h);
   let idx = 0;
-  for (var y = 0; y < height; y++) {
+  for (var y = 0; y < h; y++) {
     let row = document.createElement("tr");
-    for (var x = 0; x < width; x++) {
+    for (var x = 0; x < w; x++) {
       let gamestate = cells[idx];
       let box = document.createElement("td");
       box.classList.add("grid-square");
       box.classList.add(state_types[gamestate]);
       box.id = `${x}${y}`;
-      box.style.cssText += `width:${100 / width}%`;
+      box.style.cssText += `width:${100 / w}%;`;
+      box.style.cssText += `height:${100 / h}%;`;
       box.addEventListener("click", (e) => {
         console.log(`Box ${box.id} was clicked`);
         let row = box.id[0];
         let col = box.id[1];
-        game.click(col, row);
+        clickBox(col, row);
       });
 
       // add appropriate text

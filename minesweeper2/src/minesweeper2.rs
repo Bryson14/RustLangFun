@@ -105,6 +105,11 @@ impl MineSweeper {
         }
     }
 
+    /// Gets a pointer to the game state for the javascript
+    pub fn state(&self) -> *const u8 {
+        self.game_state.as_ptr()
+    }
+
     /// the front end will give the col and row position of the tile clicked.
     /// This is calculated into the 1-d vector and the state of the game is then updated
     /// True = Game is still going. False = game ended because of the update
