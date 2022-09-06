@@ -116,7 +116,7 @@ impl MineSweeper {
     pub fn click(&mut self, col: usize, row: usize) -> bool {
         let idx = self.get_idx(col, row);
         log!(
-            "User clicked on col {}, row {}, of state {}",
+            ">> Rust >> User clicked on col {}, row {}, of state {}",
             col,
             row,
             self.game_state[idx]
