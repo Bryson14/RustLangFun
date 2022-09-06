@@ -35,6 +35,9 @@ let h = 10;
 const resetBoard = () => {
   let grid = document.getElementById("game-grid");
   grid.innerHTML = "";
+  playing = false;
+  let playResetButton = document.getElementById("play-reset");
+  playResetButton.innerText = "Play Game";
 };
 
 const setupBoard = () => {
@@ -51,6 +54,9 @@ const setupBoard = () => {
     alert("too many mines");
     return;
   }
+
+  let playResetButton = document.getElementById("play-reset");
+  playResetButton.innerText = "Reset";
 
   game = MineSweeper.new(width, height, mines);
   console.log(`Starting New Game. ${width}x${height} with ${mines} mines.`);
@@ -69,26 +75,27 @@ const playResetButton = document.getElementById("play-reset");
 playResetButton.addEventListener("click", (event) => {
   console.log("here");
   if (playing) {
-    playing = false;
-    playResetButton.innerText = "Play Game";
     resetBoard();
   } else {
-    playing = true;
-    playResetButton.innerText = "Reset";
     setupBoard();
   }
 });
 
 function clickBox(col, row) {
-  game.click(col, row);
+  playing = game.click(col, row);
+  if (!playing) {
+    resetBoard();
+  }
+  createGrid();
   const cellsPtr = game.state();
   const cells = new Uint8Array(memory.buffer, cellsPtr, w * h);
   console.log(`Click -> cells: ${cells}`);
 }
 
-function createGrid(width, height) {
+function createGrid() {
   const gameGrid = document.getElementById("game-grid");
-  const cells = new Uint8Array(memory.buffer, game.game_state, w * h);
+  gameGrid.innerHTML = "";
+  const cells = new Uint8Array(memory.buffer, game.state(), w * h);
   let idx = 0;
   for (var y = 0; y < h; y++) {
     let row = document.createElement("tr");
@@ -98,12 +105,12 @@ function createGrid(width, height) {
       box.classList.add("grid-square");
       box.classList.add(state_types[gamestate]);
       box.id = `${x}${y}`;
-      box.style.cssText += `width:${100 / w}%;`;
+      box.style.cssText += `width:${100 / h}%;`;
       box.style.cssText += `height:${100 / h}%;`;
       box.addEventListener("click", (e) => {
         console.log(`Box ${box.id} was clicked`);
-        let row = box.id[0];
-        let col = box.id[1];
+        let row = box.id[1];
+        let col = box.id[0];
         clickBox(col, row);
       });
 
