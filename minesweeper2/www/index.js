@@ -82,13 +82,19 @@ playResetButton.addEventListener("click", (event) => {
 });
 
 function clickBox(col, row) {
-  playing = game.click(col, row);
-  if (!playing) {
+  game.click(col, row);
+  const cellsPtr = game.state();
+  const cells = new Uint8Array(memory.buffer, cellsPtr, w * h);
+  debugger;
+
+  game_over = cells.find((v) => {
+    return v == 13;
+  });
+  if (game_over) {
     resetBoard();
   }
   createGrid();
-  const cellsPtr = game.state();
-  const cells = new Uint8Array(memory.buffer, cellsPtr, w * h);
+
   console.log(`Click -> cells: ${cells}`);
 }
 
@@ -108,6 +114,7 @@ function createGrid() {
       box.style.cssText += `width:${100 / h}%;`;
       box.style.cssText += `height:${100 / h}%;`;
       box.addEventListener("click", (e) => {
+        console.log(`event ${e.which}`);
         console.log(`Box ${box.id} was clicked`);
         let row = box.id[1];
         let col = box.id[0];
