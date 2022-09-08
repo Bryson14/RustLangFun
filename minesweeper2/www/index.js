@@ -7,7 +7,10 @@ const GRID_COLOR = "#CCCCCC";
 const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#000000";
 
+let playing = false;
 let game = "";
+let w = 10;
+let h = 10;
 
 const state_types = {
   0: "empty",
@@ -25,12 +28,6 @@ const state_types = {
   12: "FlaggedMine",
   13: "Exploded",
 };
-
-// Construct the game, and get its width and height.
-
-let playing = false;
-let w = 10;
-let h = 10;
 
 const resetBoard = () => {
   let grid = document.getElementById("game-grid");
@@ -57,6 +54,7 @@ const setupBoard = () => {
 
   let playResetButton = document.getElementById("play-reset");
   playResetButton.innerText = "Reset";
+  playing = true;
 
   game = MineSweeper.new(width, height, mines);
   console.log(`Starting New Game. ${width}x${height} with ${mines} mines.`);
@@ -87,11 +85,16 @@ function clickBox(col, row) {
   const cells = new Uint8Array(memory.buffer, cellsPtr, w * h);
   debugger;
 
-  game_over = cells.find((v) => {
-    return v == 13;
-  });
+  let game_over = false;
+  for (let i = 0; i < cells.length; i++) {
+    if (cells[i] == 13) {
+      game_over = true;
+      break;
+    }
+  }
   if (game_over) {
     resetBoard();
+    return;
   }
   createGrid();
 
@@ -114,7 +117,6 @@ function createGrid() {
       box.style.cssText += `width:${100 / h}%;`;
       box.style.cssText += `height:${100 / h}%;`;
       box.addEventListener("click", (e) => {
-        console.log(`event ${e.which}`);
         console.log(`Box ${box.id} was clicked`);
         let row = box.id[1];
         let col = box.id[0];
