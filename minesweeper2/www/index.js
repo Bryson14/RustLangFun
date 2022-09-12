@@ -118,9 +118,7 @@ function createGrid() {
       box.style.cssText += `height:${100 / h}%;`;
       box.addEventListener("click", (e) => {
         console.log(`Box ${box.id} was clicked`);
-        let row = box.id[1];
-        let col = box.id[0];
-        clickBox(col, row);
+        clickBox(x, y);
       });
 
       // add appropriate text
