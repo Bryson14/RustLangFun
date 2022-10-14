@@ -251,6 +251,7 @@ impl MineSweeper {
         if col < &0 || row < &0 || col >= &(self.width as isize) || row >= &(self.height as isize) {
             return false;
         }
+
         true
     }
 }
