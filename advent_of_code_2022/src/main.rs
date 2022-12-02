@@ -26,21 +26,32 @@ mod day9;
 mod utils;
 
 fn main() {
-    // day1::part1();
-    // day1::part2();
+    let completed = [1];
 
-    day2::part1();
-    day2::part2();
+    if !completed.contains(&1) {
+        day1::part1();
+        day1::part2();
+    }
 
-    day3::part1();
-    day3::part2();
+    if !completed.contains(&2) {
+        day2::part1();
+        day2::part2();
+    }
 
-    day4::part1();
-    day4::part2();
+    // if !completed.contains(&3) {
+    //     day3::part1();
+    //     day3::part2();
+    // }
 
-    day5::part1();
-    day5::part2();
+    // if !completed.contains(&4) {
+    //     day4::part1();
+    //     day4::part2();
+    // }
 
+    // if !completed.contains(&1) {
+    //     day5::part1();
+    //     day5::part2();
+    // }
     // day6::part1();
     // day6::part2();
 

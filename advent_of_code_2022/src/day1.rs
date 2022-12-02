@@ -16,20 +16,7 @@ const DAY: &str = "{{ DAY 1 }}";
 /// Find the Elf carrying the most Calories. How many total Calories is that Elf carrying?
 pub fn part1() {
     let data = read_data(FILE);
-    let mut elves = Vec::new();
-    let mut calories = 0;
-    for line in data.lines() {
-        match line.parse::<u32>() {
-            Ok(num) => {
-                calories += num;
-            }
-            Err(_) => {
-                elves.push(calories);
-                calories = 0;
-            }
-        }
-    }
-
+    let elves = sum_each_elf(data);
     let highest = elves.iter().max().unwrap();
     let idx = elves.iter().find(|c| c == &highest).unwrap();
     println!(
@@ -42,6 +29,14 @@ pub fn part1() {
 pub fn part2() {
     let data = read_data(FILE);
     const N: usize = 3;
+    let mut elves = sum_each_elf(data);
+    elves.sort();
+    elves.reverse();
+    let top3: u32 = elves.iter().take(N).sum();
+    println!("{DAY} The top {N} elves are carrying {top3} calories.")
+}
+
+fn sum_each_elf(data: String) -> Vec<u32> {
     let mut elves = Vec::new();
     let mut calories = 0;
     for line in data.lines() {
@@ -55,8 +50,5 @@ pub fn part2() {
             }
         }
     }
-    elves.sort();
-    elves.reverse();
-    let top3: u32 = elves.iter().take(N).sum();
-    println!("{DAY} The top {N} elves are carrying {top3} calories.")
+    elves
 }
