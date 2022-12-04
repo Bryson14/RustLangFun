@@ -1,6 +1,5 @@
 use std::env::current_dir;
 use std::fs::read_to_string;
-use std::path::Path;
 
 pub fn read_data(filename: &str) -> String {
     let path = current_dir().unwrap().join("data").join(filename);
