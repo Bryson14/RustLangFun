@@ -1,4 +1,5 @@
 use crate::utils::read_data;
+use std::{collections::HashSet, hash::Hash};
 
 const FILE: &str = "day3.txt";
 const DAY: &str = "{{ DAY 3 }}";
@@ -20,6 +21,14 @@ fn similar_items(sect1: &str, sect2: &str) -> usize {
         .unwrap()
 }
 
+fn similar_items_3(sect1: &str, sect2: &str, sect3: &str) -> usize {
+    sect1
+        .chars()
+        .find(|c| sect2.contains(*c) && sect3.contains(*c))
+        .map(|c| char_priority(c))
+        .unwrap()
+}
+
 /// --- Day 3: Rucksack Reorganization ---
 pub fn part1() {
     let data = read_data(FILE);
@@ -28,11 +37,21 @@ pub fn part1() {
         .map(|line| line.split_at(line.len() / 2))
         .map(|(l, r)| similar_items(l, r))
         .sum();
-    println!("{DAY} The total score of matching items in rucksacks is {score}");
+    println!("{DAY}-1 The total score of matching items in rucksacks is {score}");
 }
 
 pub fn part2() {
     let data = read_data(FILE);
+    let strings: Vec<&str> = data.lines().collect();
+    let mut score = 0;
+    for group in strings.chunks(3) {
+        score += similar_items_3(
+            group.to_owned()[0],
+            group.to_owned()[1],
+            group.to_owned()[2],
+        )
+    }
+    println!("{DAY} The total score of matching items in rucksacks is {score}");
 }
 
 #[cfg(test)]
@@ -92,5 +111,16 @@ mod tests {
             .map(|(l, r)| similar_items(l, r))
             .sum();
         assert_eq!(score, 20);
+    }
+
+    #[test]
+    fn test_calc_score6() {
+        let data: String = "CrZsJsPPZsGzwwsLwLmpwMDw".into();
+        let score: usize = data
+            .lines()
+            .map(|line| line.split_at(line.len() / 2))
+            .map(|(l, r)| similar_items(l, r))
+            .sum();
+        assert_eq!(score, 19);
     }
 }

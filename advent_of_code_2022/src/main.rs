@@ -26,7 +26,7 @@ mod day9;
 mod utils;
 
 fn main() {
-    let completed = [1, 2];
+    let completed = [1, 2, 4];
 
     if !completed.contains(&1) {
         day1::part1();
@@ -52,11 +52,16 @@ fn main() {
     //     day5::part1();
     //     day5::part2();
     // }
-    // day6::part1();
-    // day6::part2();
 
+    // if !completed.contains(&6) {
+    // day6::part1()
+    // day6::part2();
+    // }
+
+    // if !completed.contains(&7) {
     // day7::part1();
     // day7::part2();
+    // 7
 
     // day8::part1();
     // day8::part2();
