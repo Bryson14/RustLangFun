@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod day1;
 mod day10;
 mod day11;
@@ -26,7 +27,7 @@ mod day9;
 mod utils;
 
 fn main() {
-    let completed = [1, 2, 4];
+    let completed = [1, 2, 3, 4, 5];
 
     if !completed.contains(&1) {
         day1::part1();
@@ -48,10 +49,10 @@ fn main() {
         day4::part2();
     }
 
-    // if !completed.contains(&1) {
-    //     day5::part1();
-    //     day5::part2();
-    // }
+    if !completed.contains(&5) {
+        day5::part1();
+        day5::part2();
+    }
 
     // if !completed.contains(&6) {
     // day6::part1()

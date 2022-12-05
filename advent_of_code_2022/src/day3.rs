@@ -1,5 +1,4 @@
 use crate::utils::read_data;
-use std::{collections::HashSet, hash::Hash};
 
 const FILE: &str = "day3.txt";
 const DAY: &str = "{{ DAY 3 }}";
@@ -17,7 +16,7 @@ fn similar_items(sect1: &str, sect2: &str) -> usize {
     sect1
         .chars()
         .find(|c| sect2.contains(*c))
-        .map(|c| char_priority(c))
+        .map(char_priority)
         .unwrap()
 }
 
@@ -25,7 +24,7 @@ fn similar_items_3(sect1: &str, sect2: &str, sect3: &str) -> usize {
     sect1
         .chars()
         .find(|c| sect2.contains(*c) && sect3.contains(*c))
-        .map(|c| char_priority(c))
+        .map(char_priority)
         .unwrap()
 }
 

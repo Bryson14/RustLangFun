@@ -25,7 +25,7 @@ pub fn part1() {
     let data = read_data(FILE);
     let total_score: i32 = data
         .lines()
-        .map(|line| line.split(" ").collect::<Vec<&str>>())
+        .map(|line| line.split(' ').collect::<Vec<&str>>())
         .map(|s| get_score(s[0], s[1]))
         .sum();
     println!("{DAY} Total score of strategy 1 is {total_score}");
@@ -35,7 +35,7 @@ pub fn part2() {
     let data = read_data(FILE);
     let total_score: i32 = data
         .lines()
-        .map(|line| line.split(" ").collect::<Vec<&str>>())
+        .map(|line| line.split(' ').collect::<Vec<&str>>())
         .map(|s| get_outcome_score(s[0], s[1]))
         .sum();
     println!("{DAY} Total score of strategy 2 is {total_score}");
