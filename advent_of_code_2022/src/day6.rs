@@ -18,7 +18,6 @@ pub fn part1() {
     let data = read_data(FILE);
     let ans = hashset_iter_check(data.as_str(), 4);
     println!("{DAY}-1 Packet starts after {ans} chars");
-    benchmark(&itertools_iter_buffer_check, 1000, 4, data.as_str());
     benchmark(&hashset_iter_check, 1000, 4, data.as_str());
 }
 
@@ -26,7 +25,6 @@ pub fn part2() {
     let data = read_data(FILE);
     let ans = hashset_iter_check(data.as_str(), 14);
     println!("{DAY}-2 Packet starts after {ans} chars");
-    benchmark(&itertools_iter_buffer_check, 1000, 14, data.as_str());
     benchmark(&hashset_iter_check, 1000, 14, data.as_str());
 }
 
@@ -60,22 +58,32 @@ fn itertools_iter_buffer_check(s: &str, no_repeat_len: usize) -> usize {
     marker_idx + no_repeat_len
 }
 
-/// benchmarks
+/// # benchmarks
+/// ## Making a new hashset in everyloop
 /// (4 chars start buffer) debug: 4.1542ms / iter. Release: 239µs / iter (17x speedup)
 /// (14 chars start buffer) debug: 22.77ms / iter. Release: 2.79ms / iter (8x speedup)
+/// ## Making on hashset and clearing it every round.
+/// (4 chars start buffer) debug: 2.78ms / iter. Release: 104µs / iter (17x speedup)
+/// (14 chars start buffer) debug: 12.79ms / iter. Release: 638µs / iter (8x speedup)
+/// Speed up form previous hashset implementation: ~2x debug or 4x speedup
 fn hashset_iter_check(s: &str, no_repeat_len: usize) -> usize {
     use std::collections::HashSet;
-    let mut marker = no_repeat_len;
+    let mut marker = no_repeat_len - 1;
+    // creating a larger capacity than ever filled to reduce chances of collisions in the hashset
+    let mut set: HashSet<&u8> = HashSet::with_capacity(no_repeat_len * 2);
+    // add first n elements to the hash
+    s[0..no_repeat_len].as_bytes().iter().for_each(|c| {
+        let _ = set.insert(c);
+    });
     for i in no_repeat_len..s.len() {
-        let mut set: HashSet<char> = HashSet::new();
-        s[i - no_repeat_len..i].chars().for_each(|c| {
-            let _ = set.insert(c);
-        });
-
         // if the hashset has all elements and there were no repeated characters,
         // then all elements were
         if set.len() < no_repeat_len {
             marker += 1;
+            set.clear();
+            s[i - no_repeat_len..i].as_bytes().iter().for_each(|c| {
+                let _ = set.insert(c);
+            });
         } else {
             return marker;
         }
@@ -91,7 +99,7 @@ mod tests {
     fn test_iter_check() {
         let no_repeat_len = 4;
         let buffer = "mjqjpqmgbljsphdztnvjfqwrcgsmlb";
-        assert_eq!(7, itertools_iter_buffer_check(buffer, no_repeat_len));
+        assert_eq!(7, hashset_iter_check(buffer, no_repeat_len));
 
         let buffer = "bvwbjplbgvbhsrlpgdmjqwftvncz";
         assert_eq!(5, itertools_iter_buffer_check(buffer, no_repeat_len));
