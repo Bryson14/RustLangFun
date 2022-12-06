@@ -20,7 +20,7 @@ pub fn part1() {
         .collect::<Vec<char>>();
 
     let ans = String::from_iter(tops);
-    println!("{DAY} The top crates are {ans}");
+    println!("{DAY}-1 The top crates are {ans}");
 }
 
 pub fn part2() {
@@ -38,7 +38,7 @@ pub fn part2() {
         .collect::<Vec<char>>();
 
     let ans = String::from_iter(tops);
-    println!("{DAY} The top crates are {ans}");
+    println!("{DAY}-2 The top crates are {ans}");
 }
 
 /// Move is the instruction to move a crate. This is 1-based indexing to match the input data

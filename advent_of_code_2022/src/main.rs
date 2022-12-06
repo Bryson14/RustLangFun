@@ -54,10 +54,10 @@ fn main() {
         day5::part2();
     }
 
-    // if !completed.contains(&6) {
-    // day6::part1()
-    // day6::part2();
-    // }
+    if !completed.contains(&6) {
+        day6::part1();
+        day6::part2();
+    }
 
     // if !completed.contains(&7) {
     // day7::part1();
