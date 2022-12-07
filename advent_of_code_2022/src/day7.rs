@@ -31,15 +31,23 @@ pub fn part2() {
 struct TreeNode {
     name: String,
     level: usize,
+    path: String,
     size: u128,
     children: Vec<TreeNode>,
 }
 
 impl TreeNode {
-    fn new(name: String, level: usize) -> Self {
+    fn new(name: String, level: usize, parent_path: &str) -> Self {
+        let mut path = name.clone();
+        if name != "/" {
+            // top level path
+            path.insert_str(0, "/");
+        }
+        path.insert_str(0, parent_path);
         TreeNode {
             name,
             level,
+            path: path,
             size: 0,
             children: Vec::new(),
         }
@@ -59,19 +67,6 @@ impl TreeNode {
         let children_size = self.children.iter_mut().map(|c| c.size_helper()).sum();
         self.size = children_size;
         children_size
-    }
-
-    fn find_node(&mut self, name: &str) -> Option<&mut TreeNode> {
-        if self.name == name {
-            Some(self)
-        } else {
-            for child in self.children.iter_mut() {
-                if let Some(node) = child.find_node(name) {
-                    return Some(node);
-                }
-            }
-            None
-        }
     }
 
     fn get_child(&mut self, name: &str) -> Option<&mut TreeNode> {
@@ -99,20 +94,31 @@ impl TreeNode {
         self.size
     }
 
+    fn is_node_by_path(&self, path: &str) -> bool {
+        self.path == path
+    }
+
     /// starting at the top, assuming there is no duplicate file or dir names lmao
-    fn find_parent(&mut self, child_name: &str, parent_level: usize) -> Option<&mut TreeNode> {
+    fn find_parent(
+        &mut self,
+        child_name: &str,
+        child_path: &str,
+        parent_level: usize,
+    ) -> Option<&mut TreeNode> {
         // too deep into the tree
-        if self.level > parent_level {
+        let level = self.level;
+        if level > parent_level {
             return None;
         }
         // it is the parent!
-        if self.level == parent_level && self.get_child(child_name).is_some() {
+        let child = self.get_child(child_name);
+        if level == parent_level && child.is_some() && child.unwrap().is_node_by_path(child_path) {
             return Some(self);
         }
         // the parent is possibly below this node
         if self.level < parent_level {
             for child in self.children.iter_mut() {
-                let r = child.find_parent(child_name, parent_level);
+                let r = child.find_parent(child_name, child_path, parent_level);
                 if r.is_some() {
                     return r;
                 }
@@ -124,7 +130,7 @@ impl TreeNode {
 }
 
 fn parse_input(data: &str) -> TreeNode {
-    let mut parent_node = TreeNode::new("/".to_owned(), 0);
+    let mut parent_node = TreeNode::new("/".to_owned(), 0, "");
     let mut curr_node: &mut TreeNode = &mut parent_node;
     let re_cd = Regex::new(r"^\$\s?cd\s(.+)$").unwrap();
     let re_dir = Regex::new(r"^dir\s(.+)$").unwrap();
@@ -138,9 +144,10 @@ fn parse_input(data: &str) -> TreeNode {
             } else if line.contains("cd") {
                 if line.contains("..") {
                     let child_name = curr_node.name.clone();
+                    let child_path = curr_node.path.clone();
                     let level = curr_node.level;
                     curr_node = parent_node
-                        .find_parent(&child_name, level - 1)
+                        .find_parent(&child_name, &child_path, level - 1)
                         .expect(&format!("Could not find parent node of {child_name}"));
                     assert!(curr_node.is_dir());
                 } else {
@@ -149,10 +156,11 @@ fn parse_input(data: &str) -> TreeNode {
 
                     if name != "/" {
                         let parent = curr_node.name.clone();
+                        let parent_path = curr_node.path.clone();
                         let new_node: &mut TreeNode = curr_node.get_child(name).expect(&format!(
                             "Could not find child node {} of parent {}. Line: {}",
                             name,
-                            parent,
+                            parent_path,
                             i + 1
                         ));
                         curr_node = new_node;
@@ -167,7 +175,7 @@ fn parse_input(data: &str) -> TreeNode {
                 .captures(line)
                 .expect("Re dir could not match on line");
             let name = cap.get(1).expect("no dir name found").as_str().trim();
-            let mut node = TreeNode::new(name.to_owned(), curr_node.level + 1);
+            let mut node = TreeNode::new(name.to_owned(), curr_node.level + 1, &curr_node.path);
             curr_node.children.push(node);
         } else if re_file.is_match(line) {
             // file with byte size
@@ -181,7 +189,7 @@ fn parse_input(data: &str) -> TreeNode {
                 .parse::<u128>()
                 .expect("Couldn't parse file size");
             let name = cap.get(2).expect("no filename found").as_str().trim();
-            let mut node = TreeNode::new(name.to_owned(), curr_node.level + 1);
+            let mut node = TreeNode::new(name.to_owned(), curr_node.level + 1, &curr_node.path);
             node.size = size;
             curr_node.children.push(node);
         } else {
@@ -209,12 +217,14 @@ mod tests {
                 TreeNode {
                     name: "a".to_string(),
                     level: 1,
+                    path: "//a".to_string(),
                     size: 0,
                     children: Vec::new()
                 },
                 TreeNode {
                     name: "b".to_string(),
                     level: 1,
+                    path: "//b".to_string(),
                     size: 123,
                     children: Vec::new()
                 }
@@ -235,17 +245,20 @@ mod tests {
                 TreeNode {
                     name: "a".to_string(),
                     level: 1,
+                    path: "//a".to_string(),
                     size: 5,
                     children: vec![
                         TreeNode {
                             name: "c".to_string(),
                             level: 2,
+                            path: "//a/c".to_string(),
                             size: 0,
                             children: Vec::new()
                         },
                         TreeNode {
                             name: "e".to_string(),
                             level: 2,
+                            path: "//a/e".to_string(),
                             size: 5,
                             children: Vec::new()
                         }
@@ -254,6 +267,7 @@ mod tests {
                 TreeNode {
                     name: "b".to_string(),
                     level: 1,
+                    path: "//b".to_string(),
                     size: 10,
                     children: Vec::new()
                 }
