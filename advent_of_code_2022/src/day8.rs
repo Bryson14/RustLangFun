@@ -1,3 +1,4 @@
+#![allow(unused)]
 use crate::utils::read_data;
 
 const FILE: &str = "day8.txt";
