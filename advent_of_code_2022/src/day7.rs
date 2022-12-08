@@ -18,7 +18,6 @@ pub fn part1() {
     let data = read_data(FILE);
     let limit = 100000;
     let mut filesys = parse_data_v2(data.as_str());
-    filesys.calc_size("~");
     let ans = filesys.sum_small_dirs("~", limit);
     println!(
         "{DAY} Total size of the filesystem ignoring small dirs is {}",
@@ -83,25 +82,8 @@ impl FileSystem {
         todo!()
     }
 
-    fn calc_size(&mut self, path: &str) -> usize {
-        let contents = self
-            .files
-            .get(path)
-            .expect("cannot find filepath when calculating size");
-        if contents.is_file() {
-            return contents.size;
-        }
-        contents
-            .children
-            .iter()
-            .filter_map(|c| self.get_child_path(path, c))
-            .map(|child_path| child_path.to_owned())
-            .map(|child_path| self.calc_size(&child_path))
-            .sum::<usize>()
-    }
-
     // get the child by looking into the struct of the parent and getting the strings
-    fn get_child_path(&self, parent_path: &str, child_name: &str) -> Option<&str> {
+    fn get_child_path(&mut self, parent_path: &str, child_name: &str) -> Option<&str> {
         if let Some(contents) = self.files.get(parent_path) {
             let child_path = join_path(parent_path, child_name);
             return Some(contents.children.iter().find(|&p| p == child_name).unwrap());
@@ -128,7 +110,7 @@ impl FileSystem {
         let mut second_path = String::new();
         let mut found = false;
         // top level dir
-        if parent_path == "" && child_name == "/" {
+        if parent_path.is_empty() && child_name == "/" {
             self.files.insert("~".to_string(), Contents::new());
             return;
         }
@@ -147,6 +129,17 @@ impl FileSystem {
             let mut c = self.files.remove(parent_path).unwrap();
             c.children.push(second_path);
             self.files.insert(parent_path.to_string(), c);
+
+            let parsed = parse_path(parent_path);
+            for i in (0..parsed.len()).rev() {
+                let p = &parsed[0..=i].join(SEP);
+                let mut c = self
+                    .files
+                    .remove(p)
+                    .unwrap_or_else(|| panic!("{} : Cant remove {}", i, p));
+                c.size += child_size;
+                self.files.insert(p.to_string(), c);
+            }
         }
     }
 }
@@ -159,7 +152,7 @@ fn join_path(parent_path: &str, child_name: &str) -> String {
 }
 
 fn parse_path(path: &str) -> Vec<&str> {
-    path.split("/").collect()
+    path.split('/').collect()
 }
 
 fn parse_data_v2(data: &str) -> FileSystem {
@@ -179,10 +172,14 @@ fn parse_data_v2(data: &str) -> FileSystem {
             let name = cap.get(1).expect("no cd char found").as_str().trim();
             curr_node = filesys
                 .get_child_path(&curr_node, name)
-                .expect(&format!(
-                    "Could not find child {} in path {}",
-                    name, curr_node
-                ))
+                .unwrap_or_else(|| {
+                    panic!(
+                        "{}: Could not find child {} in path {}",
+                        176 + i,
+                        name,
+                        curr_node
+                    )
+                })
                 .to_string();
         } else if line.starts_with("dir") {
             let cap = re_dir
