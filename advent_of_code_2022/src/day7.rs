@@ -1,215 +1,200 @@
-#![allow(unused)]
+use itertools::Itertools;
+use regex::Regex;
 use std::collections::HashMap;
 
 use crate::utils::read_data;
-use itertools::concat;
-use regex::Regex;
 
-const FILE: &str = "day7.txt";
+const DATA: &str = "day7.txt";
 const DAY: &str = "{{ DAY 7 }}";
-const SEP: &str = "/";
 
-/// --- Day 7: No Space Left On Device ---
-/// You browse around the filesystem to assess the situation and
-/// save the resulting terminal output (your puzzle input).
-/// Find all of the directories with a total size of at most 100000.
-/// What is the sum of the total sizes of those directories?
 pub fn part1() {
-    let data = read_data(FILE);
-    let limit = 100000;
-    let mut filesys = parse_data_v2(data.as_str());
-    let ans = filesys.sum_small_dirs("~", limit);
+    let input = read_data(DATA);
+    let dir_tree = parse_input_into_dir_tree(&input);
+
+    let dirs_under_100000 = dir_tree
+        .dirs
+        .iter()
+        .map(|(_, dir)| dir)
+        .filter(|dir| dir.size.le(&100_000))
+        .collect_vec();
+
     println!(
-        "{DAY} Total size of the filesystem ignoring small dirs is {}",
-        ans
+        "{DAY}-1 there are {} dirs sized under 100000, with total size of {}",
+        dirs_under_100000.len(),
+        dirs_under_100000.iter().map(|dir| dir.size).sum::<u64>(),
     );
 }
 
 pub fn part2() {
-    let data = read_data(FILE);
+    let input = read_data(DATA);
+    let dir_tree = parse_input_into_dir_tree(&input);
+
+    const TOTAL_DISK_SIZE: u64 = 70_000_000;
+    const REQUIRED_DISK_SIZE: u64 = 30_000_000;
+
+    let total_taken_size = dir_tree.get(&"/".to_string()).unwrap().size;
+    let disk_space_to_free = total_taken_size - (TOTAL_DISK_SIZE - REQUIRED_DISK_SIZE);
+
+    let possible_dirs_to_delete = dir_tree
+        .dirs
+        .iter()
+        .map(|(_, dir)| dir)
+        .filter(|dir| dir.size >= disk_space_to_free);
+
+    let dir_to_delete = possible_dirs_to_delete
+        .min_by(|a, b| a.size.cmp(&b.size))
+        .expect("really? no dirs?");
+
+    println!("{DAY}-2 the smallest dir to delete that will yield us enough space for update has total size of {}", dir_to_delete.size)
 }
 
-/// A tree map that only stores one-way downward references to reduce the headache of Rc<RefCell<TreeNode>>
-#[derive(Debug, PartialEq, Eq)]
-struct TreeNode {
-    name: String,
-    level: usize,
-    path: String,
-    size: u128,
-    children: Vec<TreeNode>,
+struct DirTree {
+    dirs: HashMap<String, Directory>,
 }
 
-struct FileSystem {
-    files: HashMap<String, Contents>,
-    size: usize,
-}
-
-struct Contents {
-    size: usize,
-    children: Vec<String>,
-    parent: String,
-}
-
-impl Contents {
-    // size is the byte size of the file or dir
-
+impl DirTree {
     fn new() -> Self {
-        Contents {
+        Self {
+            dirs: HashMap::from([(
+                "/".to_string(),
+                Directory {
+                    size: 0,
+                    sub_dirs: vec![],
+                    parent: None,
+                },
+            )]),
+        }
+    }
+
+    fn get(&self, path: &String) -> Option<&Directory> {
+        self.dirs.get(path)
+    }
+
+    fn get_mut(&mut self, path: &String) -> Option<&mut Directory> {
+        self.dirs.get_mut(path)
+    }
+
+    fn insert_dir(&mut self, dirname: String, parent: String) {
+        let path = format!("{}{}/", parent, dirname);
+
+        let dir = Directory {
             size: 0,
-            children: Vec::new(),
-            parent: "".to_string(),
-        }
+            sub_dirs: vec![],
+            parent: Some(parent.clone()),
+        };
+
+        self.get_mut(&parent)
+            .expect(format!("no parent directory at {}", parent).as_str())
+            .sub_dirs
+            .push(path.clone());
+
+        self.dirs.insert(path, dir);
     }
 
-    fn is_dir(&self) -> bool {
-        !self.children.is_empty()
-    }
+    fn insert_file(&mut self, size: &u64, path: &String) {
+        let mut next_path_to_traverse = Some(path.clone());
 
-    fn is_file(&self) -> bool {
-        self.children.is_empty()
-    }
-}
-
-impl FileSystem {
-    fn new() -> Self {
-        FileSystem {
-            files: HashMap::new(),
-            size: 0,
-        }
-    }
-
-    fn sum_small_dirs(&self, path: &str, limit: usize) -> usize {
-        todo!()
-    }
-
-    // get the child by looking into the struct of the parent and getting the strings
-    fn get_child_path(&mut self, parent_path: &str, child_name: &str) -> Option<&str> {
-        if let Some(contents) = self.files.get(parent_path) {
-            let child_path = join_path(parent_path, child_name);
-            return Some(contents.children.iter().find(|&p| p == child_name).unwrap());
-        }
-        None
-    }
-
-    // gets the
-    fn get_parent_path(&self, this_path: &str) -> String {
-        let mut parsed = parse_path(this_path);
-        let _ = parsed.pop();
-        parsed.join(SEP)
-    }
-
-    fn add_dir(&mut self, parent_path: &str, child_name: &str) {
-        self.add_child(parent_path, child_name, 0);
-    }
-
-    fn add_file(&mut self, parent_path: &str, child_name: &str, child_size: usize) {
-        self.add_child(parent_path, child_name, child_size);
-    }
-
-    fn add_child(&mut self, parent_path: &str, child_name: &str, child_size: usize) {
-        let mut second_path = String::new();
-        let mut found = false;
-        // top level dir
-        if parent_path.is_empty() && child_name == "/" {
-            self.files.insert("~".to_string(), Contents::new());
-            return;
-        }
-        if let Some(parent) = self.files.get(parent_path) {
-            found = true;
-            let child_path = join_path(parent_path, child_name);
-            second_path = child_path.clone();
-            let child_contents = Contents {
-                size: child_size,
-                children: Vec::new(),
-                parent: parent_path.to_string(),
-            };
-            self.files.insert(child_path, child_contents);
-        }
-        if found {
-            let mut c = self.files.remove(parent_path).unwrap();
-            c.children.push(second_path);
-            self.files.insert(parent_path.to_string(), c);
-
-            let parsed = parse_path(parent_path);
-            for i in (0..parsed.len()).rev() {
-                let p = &parsed[0..=i].join(SEP);
-                let mut c = self
-                    .files
-                    .remove(p)
-                    .unwrap_or_else(|| panic!("{} : Cant remove {}", i, p));
-                c.size += child_size;
-                self.files.insert(p.to_string(), c);
-            }
+        while let Some(cur_path) = next_path_to_traverse {
+            let node = self
+                .get_mut(&cur_path)
+                .expect(format!("path not found: {}", cur_path).as_str());
+            node.size += size;
+            next_path_to_traverse = node.parent.clone();
         }
     }
 }
 
-fn join_path(parent_path: &str, child_name: &str) -> String {
-    let mut path = parent_path.to_string();
-    path.push_str(SEP);
-    path.push_str(child_name);
-    path
+struct Directory {
+    size: u64,
+    sub_dirs: Vec<String>,
+    parent: Option<String>,
 }
 
-fn parse_path(path: &str) -> Vec<&str> {
-    path.split('/').collect()
+#[derive(Debug)]
+enum Commands {
+    CD(String),
+    LS,
 }
 
-fn parse_data_v2(data: &str) -> FileSystem {
-    let mut filesys = FileSystem::new();
-    let mut curr_node: String = "".into();
-    let re_cd = Regex::new(r"^\$\s?cd\s(.+)$").unwrap();
-    let re_dir = Regex::new(r"^dir\s(.+)$").unwrap();
-    let re_file = Regex::new(r"^(\d+)\s(.+)$").unwrap();
+impl Commands {
+    fn from(command: &str) -> Self {
+        if command == "$ ls" {
+            return Commands::LS;
+        }
 
-    for (i, line) in data.lines().enumerate() {
-        if line.starts_with("$ cd ..") {
-            curr_node = filesys.get_parent_path(&curr_node);
-        } else if line.starts_with("$ ls") {
-            // listing out the contents of curr_node
-        } else if line.starts_with("$ cd") {
-            let cap = re_cd.captures(line).unwrap();
-            let name = cap.get(1).expect("no cd char found").as_str().trim();
-            curr_node = filesys
-                .get_child_path(&curr_node, name)
-                .unwrap_or_else(|| {
-                    panic!(
-                        "{}: Could not find child {} in path {}",
-                        176 + i,
-                        name,
-                        curr_node
-                    )
-                })
-                .to_string();
-        } else if line.starts_with("dir") {
-            let cap = re_dir
-                .captures(line)
-                .expect(" Re_file could not match on line");
-            let name = cap.get(1).expect("no filename found").as_str().trim();
-            filesys.add_dir(&curr_node, name);
-        } else if re_file.is_match(line) {
-            let cap = re_file
-                .captures(line)
-                .expect(" Re_file could not match on line");
-            let size = cap
-                .get(1)
-                .expect("no byte size found")
+        let cd_matcher = Regex::new(r"^\$ cd (?P<dirname>.+)$").unwrap();
+        if let Some(matched) = cd_matcher.captures(command) {
+            let dirname = matched.name("dirname").unwrap().as_str().to_string();
+            return Commands::CD(dirname);
+        }
+
+        panic!("unknown command: {}", command);
+    }
+}
+
+enum ListResults {
+    Dir(String),
+    File(u64),
+}
+
+impl ListResults {
+    fn from(list_result: &str) -> Self {
+        let dir_matcher = Regex::new(r"^dir (?P<dirname>.+)$").unwrap();
+        if let Some(matched) = dir_matcher.captures(list_result) {
+            return Self::Dir(matched.name("dirname").unwrap().as_str().to_string());
+        }
+
+        let file_matcher = Regex::new(r"^(?P<size>\d+) .+").unwrap();
+        if let Some(matched) = file_matcher.captures(list_result) {
+            let size = matched
+                .name("size")
+                .unwrap()
                 .as_str()
-                .parse::<usize>()
-                .expect("Couldn't parse file size");
-            let name = cap.get(2).expect("no filename found").as_str().trim();
-            filesys.add_file(&curr_node, name, size);
-        } else {
-            unreachable!();
+                .parse::<u64>()
+                .unwrap();
+            return Self::File(size);
         }
+
+        panic!("unknown list result: {}", list_result);
     }
-    filesys
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+fn parse_input_into_dir_tree(input: &String) -> DirTree {
+    let mut dir_tree = DirTree::new();
+    let mut current_path = "/".to_string();
 
-    #[test]
-    fn test_parse_1() {}
+    let mut lines = input.lines().peekable();
+    while let Some(line) = lines.next() {
+        let command = Commands::from(line);
+        match command {
+            Commands::CD(to) => match to.as_str() {
+                "/" => current_path = "/".to_string(),
+                ".." => {
+                    current_path = dir_tree
+                        .get(&current_path)
+                        .unwrap()
+                        .parent
+                        .as_ref()
+                        .unwrap()
+                        .clone();
+                }
+                into_dir => {
+                    current_path = format!("{}{}/", current_path, into_dir);
+                }
+            },
+            Commands::LS => {
+                while lines.peek().is_some() && !lines.peek().unwrap().starts_with("$") {
+                    let list_result = ListResults::from(lines.next().unwrap());
+                    match list_result {
+                        ListResults::File(size) => dir_tree.insert_file(&size, &current_path),
+                        ListResults::Dir(name) => {
+                            dir_tree.insert_dir(name, current_path.clone());
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    dir_tree
 }
