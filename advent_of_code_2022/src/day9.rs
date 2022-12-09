@@ -2,9 +2,6 @@
 use std::collections::HashSet;
 use std::fmt;
 
-use std::collections::HashSet;
-use std::fmt;
-
 use crate::utils::read_data;
 
 const FILE: &str = "day9.txt";
