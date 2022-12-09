@@ -2,6 +2,9 @@
 use std::collections::HashSet;
 use std::fmt;
 
+use std::collections::HashSet;
+use std::fmt;
+
 use crate::utils::read_data;
 
 const FILE: &str = "day9.txt";
@@ -12,32 +15,39 @@ pub fn part1() {
     let data = read_data(FILE);
     let moves = read_moves(data);
     let map_limits = get_map_limits(&moves);
-    let map = move_rope(moves, map_limits);
+    let map = move_rope(moves, map_limits, 2);
     let ans = count_tail_visits(map);
     println!("{DAY}-1 the number of cells visited by the tail are {ans}");
 }
 
+///
 pub fn part2() {
     let data = read_data(FILE);
 }
 
 fn count_tail_visits(map: Vec<Vec<MapCell>>) -> usize {
-    map.iter().flatten().filter(|c| c.tail_visits > 0).count()
+    map.iter()
+        .flatten()
+        .filter(|c| c.knot_visits[1] > 0)
+        .count()
 }
 
-fn move_rope(moves: Vec<HeadMove>, map_limits: MapLimits) -> Vec<Vec<MapCell>> {
-    let mut head_loc: (usize, usize) = (
-        map_limits.min_x.abs() as usize,
-        map_limits.max_y.abs() as usize,
-    );
-    let mut tail_loc = head_loc.clone();
+fn move_rope(moves: Vec<HeadMove>, map_limits: MapLimits, num_knots: usize) -> Vec<Vec<MapCell>> {
+    let mut knot_locs: Vec<(usize, usize)> = vec![
+        (
+            map_limits.min_x.abs() as usize,
+            map_limits.max_y.abs() as usize,
+        );
+        num_knots
+    ];
+    let mut prev_loc = knot_locs.clone();
     let map_width = map_limits.max_x + 1 - map_limits.min_x;
     let map_height = map_limits.max_y + 1 - map_limits.min_y;
 
     let mut map: Vec<Vec<MapCell>> =
-        vec![vec![MapCell::new(); map_width as usize]; map_height as usize];
-    map[head_loc.1][head_loc.0].add_head();
-    map[tail_loc.1][tail_loc.0].add_tail();
+        vec![vec![MapCell::new(num_knots); map_width as usize]; map_height as usize];
+    map[knot_locs[0].1][knot_locs[0].0].add_knot(0);
+    map[knot_locs[1].1][knot_locs[1].0].add_knot(1);
 
     for m in moves.iter() {
         let steps = match m {
@@ -47,59 +57,57 @@ fn move_rope(moves: Vec<HeadMove>, map_limits: MapLimits) -> Vec<Vec<MapCell>> {
             HeadMove::Right(step) => *step,
         };
         for _ in 0..steps {
-            let previous_head = (head_loc.0, head_loc.1);
-            map[head_loc.1][head_loc.0].remove_head();
+            prev_loc[0] = (knot_locs[0].0, knot_locs[0].1);
+            map[knot_locs[0].1][knot_locs[0].0].remove_knot(0);
             match m {
-                HeadMove::Up(step) => head_loc.1 -= 1, // down because 0,0 is at top left of map
-                HeadMove::Down(step) => head_loc.1 += 1,
-                HeadMove::Left(step) => head_loc.0 -= 1,
-                HeadMove::Right(step) => head_loc.0 += 1,
+                HeadMove::Up(step) => knot_locs[0].1 -= 1, // down because 0,0 is at top left of map
+                HeadMove::Down(step) => knot_locs[0].1 += 1,
+                HeadMove::Left(step) => knot_locs[0].0 -= 1,
+                HeadMove::Right(step) => knot_locs[0].0 += 1,
             };
 
-            map.get_mut(head_loc.1)
-                .expect(&format!("Y index {} of h: {}", head_loc.1, map_height))
-                .get_mut(head_loc.0)
-                .expect(&format!("X index {} of w: {}", head_loc.0, map_width))
-                .add_head();
+            map.get_mut(knot_locs[0].1)
+                .expect(&format!("Y index {} of h: {}", knot_locs[0].1, map_height))
+                .get_mut(knot_locs[0].0)
+                .expect(&format!("X index {} of w: {}", knot_locs[0].0, map_width))
+                .add_knot(1);
 
-            let diff_x = (head_loc.0 as i32) - (tail_loc.0 as i32);
-            let diff_y = (head_loc.1 as i32) - (tail_loc.1 as i32);
+            let diff_x = (knot_locs[0].0 as i32) - (knot_locs[1].0 as i32);
+            let diff_y = (knot_locs[0].1 as i32) - (knot_locs[1].1 as i32);
 
             if diff_x.abs() <= 1 && diff_y.abs() <= 1 {
             }
             // head is within '1' block of tail and doens't pull it
             else {
-                map[tail_loc.1][tail_loc.0].remove_tail();
-                map[previous_head.1][previous_head.0].add_tail();
-                (tail_loc.0, tail_loc.1) = previous_head;
+                map[knot_locs[1].1][knot_locs[1].0].remove_knot(1);
+                map[prev_loc[0].1][prev_loc[0].0].add_knot(1);
+                (knot_locs[1].0, knot_locs[1].1) = prev_loc[0];
             }
 
-            // for row in map.iter() {
-            //     for cell in row.iter() {
-            //         print!("{}", cell);
-            //     }
-            //     println!("")
-            // }
-            // println!("")
+            for row in map.iter() {
+                for cell in row.iter() {
+                    print!("{}", cell);
+                }
+                println!("");
+            }
+            println!("");
         }
     }
     map
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 struct MapCell {
-    contains_head: bool,
-    contains_tail: bool,
-    head_visits: usize,
-    tail_visits: usize,
+    contains_knot: Vec<bool>,
+    knot_visits: Vec<usize>,
 }
 
 impl fmt::Display for MapCell {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut sign = '.';
-        if self.head_visits > 0 && self.tail_visits > 0 {
+        if self.knot_visits[0] > 0 && self.knot_visits[1] > 0 {
             sign = '#'
-        } else if self.head_visits > 0 {
+        } else if self.knot_visits[0] > 0 {
             sign = 'O'
         }
         write!(f, "{} ", sign)
@@ -107,31 +115,20 @@ impl fmt::Display for MapCell {
 }
 
 impl MapCell {
-    fn new() -> Self {
+    fn new(knots: usize) -> Self {
         MapCell {
-            contains_head: false,
-            contains_tail: false,
-            head_visits: 0,
-            tail_visits: 0,
+            contains_knot: vec![false; knots],
+            knot_visits: vec![0; knots],
         }
     }
 
-    fn add_head(&mut self) {
-        self.contains_head = true;
-        self.head_visits += 1;
+    fn add_knot(&mut self, knot: usize) {
+        self.contains_knot[knot] = true;
+        self.knot_visits[knot] += 1;
     }
 
-    fn add_tail(&mut self) {
-        self.contains_tail = true;
-        self.tail_visits += 1;
-    }
-
-    fn remove_head(&mut self) {
-        self.contains_head = false;
-    }
-
-    fn remove_tail(&mut self) {
-        self.contains_tail = false;
+    fn remove_knot(&mut self, knot: usize) {
+        self.contains_knot[knot] = false;
     }
 }
 
@@ -222,7 +219,7 @@ mod tests {
         let data = "R 4\nU 4\nL 3\nD 1\nR 4\nD 1\nL 5\nR 2";
         let moves = read_moves(data.into());
         let map_limits = get_map_limits(&moves);
-        let map = move_rope(moves, map_limits);
+        let map = move_rope(moves, map_limits, 2);
         let ans = count_tail_visits(map);
         assert_eq!(ans, 13);
     }
