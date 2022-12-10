@@ -70,7 +70,12 @@ fn main() {
     }
 
     if !completed.contains(&9) {
-        day9::part1();
-        day9::part2();
+        // day9::part1();
+        // day9::part2();
+    }
+
+    if !completed.contains(&10) {
+        day10::part1();
+        day10::part2();
     }
 }
