@@ -1,4 +1,3 @@
-#![allow(unused)]
 use crate::utils::read_data;
 use itertools::Itertools;
 
