@@ -111,43 +111,71 @@ impl SandMap {
         let mut keep_dropping = true;
         while (keep_dropping) {
             keep_dropping = self.drop_sand_block();
+            println!("{self}");
         }
     }
 
     fn drop_sand_block(&mut self) -> bool {
         let sand_origin: (usize, usize) = (500, 0);
-        let mut pos = (sand_origin.0 - self.xrange.0, sand_origin.1 - self.yrange.0);
+        let mut xpos = sand_origin.0 - self.xrange.0;
+        let mut ypos = sand_origin.1 - self.yrange.0;
         let mut falling = true;
+        let mut flowing = false;
 
-        while self.inbounds(pos) && falling {
-            if self.map[pos.1 + 1][pos.0] == Material::Air {
-                // move down
-                pos.1 += 1;
-            } else if pos.0 > 0 && self.map[pos.1 + 1][pos.0 - 1] == Material::Air {
-                // move down and left
-                pos.0 -= 1;
-                pos.1 += 1;
-            } else if pos.0 < self.xrange.0 && self.map[pos.1 + 1][pos.0 + 1] == Material::Air {
-                // move down and right
-                pos.0 += 1;
-                pos.1 += 1;
-            } else if self.map[pos.1 + 1][pos.0] == Material::Rock {
+        while self.inbounds(xpos, ypos) && falling {
+            let row_below = self.map.get(ypos + 1);
+            if row_below.is_none() {
                 falling = false;
+                flowing = true;
+                break;
             }
+            let row_below = row_below.unwrap();
+
+            if let Some(val) = row_below.get(xpos) {
+                if val == &Material::Air {
+                    // move down
+                    ypos += 1;
+                    continue;
+                }
+            }
+            if xpos > 0 {
+                if let Some(val) = row_below.get(xpos - 1) {
+                    if val == &Material::Air {
+                        // move down and left
+                        xpos -= 1;
+                        ypos += 1;
+                        continue;
+                    }
+                }
+            }
+            if xpos < row_below.len() {
+                if let Some(val) = row_below.get(xpos + 1) {
+                    if val == &Material::Air {
+                        // move down and right
+                        xpos += 1;
+                        ypos += 1;
+                        continue;
+                    }
+                }
+            }
+
+            falling = false;
         }
 
-        if !self.inbounds(pos) {
-            // falling sand
+        if !falling {
+            true
+        } else if flowing {
+            self.map[ypos][xpos] = Material::FlowingSand;
             false
         } else {
-            self.map[pos.1][pos.0] = Material::Sand;
+            self.map[ypos][xpos] = Material::Sand;
             true
         }
     }
 
-    fn inbounds(&self, pos: (usize, usize)) -> bool {
-        if let Some(row) = self.map.get(pos.1) {
-            if let Some(v) = row.get(pos.0) {
+    fn inbounds(&self, xpos: usize, ypos: usize) -> bool {
+        if let Some(row) = self.map.get(ypos) {
+            if let Some(v) = row.get(xpos) {
                 return true;
             }
         }
@@ -173,9 +201,6 @@ impl std::fmt::Display for SandMap {
                     .fold(String::new(), |a, b| a + &b)
             })
             .fold(String::new(), |a, b| a + &b + "\n");
-
-        // let metadata = format!("X Range: {:?} | Y Range: {:?}\n", self.xrange, self.yrange);
-        // s.insert_str(0, &metadata);
         write!(f, "{s}")
     }
 }
