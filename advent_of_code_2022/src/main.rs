@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 mod day1;
 mod day10;
-mod day11;
+// mod day11;
 mod day12;
 mod day13;
 mod day14;
@@ -28,6 +28,7 @@ mod utils;
 
 fn main() {
     let completed = [1, 2, 3, 4, 5, 6, 7, 8];
+    let unfinished = [9, 10, 11, 12];
 
     if !completed.contains(&1) {
         day1::part1();
@@ -75,7 +76,22 @@ fn main() {
     }
 
     if !completed.contains(&10) {
-        day10::part1();
-        day10::part2();
+        // day10::part1();
+        // day10::part2();
+    }
+
+    // if !completed.contains(&11) {
+    // day11::part1();
+    // day11::part2();
+    // }
+
+    // if !completed.contains(&12) {
+    //     day12::part1();
+    //     day12::part2();
+    // }
+
+    if !completed.contains(&13) {
+        day13::part1();
+        day13::part2();
     }
 }

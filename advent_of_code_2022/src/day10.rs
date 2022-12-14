@@ -17,29 +17,16 @@ pub fn part1() {
     let mut sum = 0;
     for (i, ins) in instructions.iter().enumerate() {
         let c = cpu.increment_cycle();
-        if check_cycle(&peek_cycles, c) {
-            println!(
-                "add {i} line, str: {}, ins: {:?}",
-                cpu.get_signal_strength(),
-                ins
-            );
-            sum += cpu.get_signal_strength();
-        }
+        check_add(&peek_cycles, c, &mut sum, &mut cpu);
         match ins {
             Instruction::Noop => {}
             Instruction::Addx(num) => {
                 let c = cpu.increment_cycle();
+                check_add(&peek_cycles, c, &mut sum, &mut cpu);
                 cpu.add_register(*num);
-                if check_cycle(&peek_cycles, c) {
-                    println!(
-                        "add {i} line, str: {}, ins: {:?}",
-                        cpu.get_signal_strength(),
-                        ins
-                    );
-                    sum += cpu.get_signal_strength();
-                }
             }
         };
+        println!("reg: {}", cpu.register);
     }
 
     println!("{DAY}-1 Sum = {sum} for {:?} cycles", peek_cycles);
@@ -47,10 +34,55 @@ pub fn part1() {
 
 pub fn part2() {
     let data = read_data(FILE);
+    let instructions = read_instructions(data);
+    let mut cpu = CPU::new();
+    let peek_cycles: Vec<usize> = vec![20, 60, 100, 140, 180, 220];
+    let mut sum = 0;
+    let mut display = [[0u8; 41]; 7];
+    for (i, ins) in instructions.iter().enumerate() {
+        let c = cpu.increment_cycle();
+        check_add(&peek_cycles, c, &mut sum, &mut cpu);
+        match ins {
+            Instruction::Noop => {}
+            Instruction::Addx(num) => {
+                let c = cpu.increment_cycle();
+                check_add(&peek_cycles, c, &mut sum, &mut cpu);
+                cpu.add_register(*num);
+            }
+        };
+        println!("reg: {}", cpu.register);
+    }
+
+    let mut display_str = String::new();
+    for line in display {
+        display_str.push('\n');
+        for pixel in line {
+            display_str.push_str(if pixel == 0 { " " } else { "#" });
+        }
+    }
+
+    println!("{DAY}-1 Sum = {sum} for {:?} cycles", peek_cycles);
+    println!("{}", display_str);
+}
+
+fn draw_pixel_crt(display: &mut [[u8; 41]; 7], signal: i32, cycle: i32) {
+    let pixel_y = ((cycle - 1) / 40);
+    let pixel_x = ((cycle - 1) % 40);
+    if (signal - pixel_x).abs() <= 1 {
+        display[pixel_y as usize][pixel_x as usize] = 1;
+    } else {
+        display[pixel_y as usize][pixel_x as usize] = 0;
+    }
 }
 
 fn check_cycle(peek_cycles: &Vec<usize>, curr_cycle: usize) -> bool {
     peek_cycles.contains(&curr_cycle)
+}
+
+fn check_add(peek_cycles: &Vec<usize>, curr_cycle: usize, sum: &mut i32, cpu: &mut CPU) {
+    if check_cycle(&peek_cycles, curr_cycle) {
+        *sum += cpu.get_signal_strength();
+    }
 }
 
 struct CPU {
@@ -93,7 +125,12 @@ fn read_instructions(data: String) -> Vec<Instruction> {
             if line.starts_with("noop") {
                 return Instruction::Noop;
             } else if line.starts_with("addx") {
-                let num = line.split(" ").nth(1).unwrap().parse::<i32>().unwrap();
+                let num = line
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap()
+                    .parse::<i32>()
+                    .unwrap();
                 return Instruction::Addx(num);
             } else {
                 unreachable!();

@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 itertools = "0.10.5"
+json = "0.12.4"
 regex = "1.7.0"

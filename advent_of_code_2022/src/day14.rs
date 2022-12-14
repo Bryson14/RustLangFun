@@ -1,8 +1,8 @@
 #![allow(unused)]
 use crate::utils::read_data;
 
-const FILE: &str = "day10.txt";
-const DAY: &str = "{{ DAY 10 }}";
+const FILE: &str = "day14.txt";
+const DAY: &str = "{{ DAY 14 }}";
 
 pub fn part1() {
     let data = read_data(FILE);
