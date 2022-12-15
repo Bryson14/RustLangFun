@@ -96,7 +96,12 @@ fn main() {
     }
 
     if !completed.contains(&14) {
-        day14::part1();
-        day14::part2();
+        // day14::part1();
+        // day14::part2();
+    }
+
+    if !completed.contains(&15) {
+        day15::part1();
+        day15::part2();
     }
 }
