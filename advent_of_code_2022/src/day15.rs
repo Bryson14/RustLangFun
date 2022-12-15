@@ -56,7 +56,7 @@ fn find_no_beacon_zone(sensors: Vec<Sensor>, search_space: GridRange) -> GridPos
             .filter(|&&p| search_space.contains_point(p))
             .collect::<Vec<&GridPos>>();
         for edge in edges {
-            if sensors.iter().any(|s| !s.covers_point(&edge)) {
+            if sensors.iter().all(|s| !s.covers_point(&edge)) {
                 uncovered_point = *edge;
                 break 'outer;
             }
