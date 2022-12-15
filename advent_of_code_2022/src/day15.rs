@@ -2,6 +2,7 @@
 use crate::utils::read_data;
 use rayon::prelude::*;
 use regex::Regex;
+use std::collections::HashSet;
 
 const FILE: &str = "day15.txt";
 const DAY: &str = "{{ DAY 15 }}";
@@ -47,34 +48,20 @@ pub fn part2() {
 }
 
 fn find_no_beacon_zone(sensors: Vec<Sensor>, search_space: GridRange) -> GridPos {
-    let mut map_range: GridRange = GridRange {
-        x_range: (0, 0),
-        y_range: (0, 0),
-    };
-    sensors
-        .iter()
-        .for_each(|s| map_range.expand_range(s.get_largest_range()));
-    let beacon_pos = sensors
-        .iter()
-        .map(|s| s.closest_beacon.pos)
-        .collect::<Vec<GridPos>>();
-
     let mut uncovered_point = GridPos { x: 0, y: 0 };
-    let mut point = GridPos { x: 0, y: 0 };
-
-    let _ = (search_space.x_range.0..search_space.x_range.1)
-        .into_par_iter()
-        .find_first(|&x| {
-            let mut point = GridPos { x: 0, y: 0 };
-            for y in (search_space.y_range.0..=search_space.y_range.1) {
-                (point.x, point.y) = (x, y);
-                let not_covered = sensors.iter().find(|s| !s.covers_point(&point));
-                if not_covered.is_some() {}
+    'outer: for s in sensors.iter() {
+        let edges = s.get_edge_points();
+        let edges = edges
+            .iter()
+            .filter(|&&p| search_space.contains_point(p))
+            .collect::<Vec<&GridPos>>();
+        for edge in edges {
+            if sensors.iter().any(|s| !s.covers_point(&edge)) {
+                uncovered_point = *edge;
+                break 'outer;
             }
-            uncovered_point = point;
-            true
-        })
-        .unwrap();
+        }
+    }
     uncovered_point
 }
 
@@ -205,6 +192,13 @@ impl GridRange {
             self.y_range.1 = range.y_range.1;
         }
     }
+
+    fn contains_point(&self, point: GridPos) -> bool {
+        self.x_range.0 <= point.x
+            && self.x_range.1 >= point.x
+            && self.y_range.0 <= point.y
+            && self.y_range.1 >= point.y
+    }
 }
 
 impl Sensor {
@@ -232,13 +226,28 @@ impl Sensor {
             + (self.pos.y - self.closest_beacon.pos.y).abs();
         let mut oob_points = Vec::with_capacity((sensor_distance * 8) as usize);
 
-        for x in (0..sensor_distance + 1) {
-            let y = sensor_distance + 1 - x;
-            oob_points.push(GridPos { x: (x), y: (y) });
-            oob_points.push(GridPos { x: (x), y: (-y) });
-            oob_points.push(GridPos { x: (-x), y: (y) });
-            oob_points.push(GridPos { x: (-x), y: (-y) });
+        for delta_x in (0..=sensor_distance + 1) {
+            let delta_y = sensor_distance + 1 - delta_x;
+            oob_points.push(GridPos {
+                x: (self.pos.x + delta_x),
+                y: (self.pos.y + delta_y),
+            });
+            oob_points.push(GridPos {
+                x: (self.pos.x + delta_x),
+                y: (self.pos.y - delta_y),
+            });
+            oob_points.push(GridPos {
+                x: (self.pos.x - delta_x),
+                y: (self.pos.y + delta_y),
+            });
+            oob_points.push(GridPos {
+                x: (self.pos.x - delta_x),
+                y: (self.pos.y - delta_y),
+            });
         }
+
+        let set: HashSet<_> = oob_points.drain(..).collect(); // dedup
+        oob_points.extend(set.into_iter());
 
         oob_points
     }
@@ -249,15 +258,15 @@ struct Beacon {
     pos: GridPos,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 struct GridPos {
     x: i32,
     y: i32,
 }
 
 impl GridPos {
-    fn get_tuning_freqency(&self) -> i32 {
-        self.x * 4000000 + self.y
+    fn get_tuning_freqency(&self) -> i128 {
+        self.x as i128 * 4000000 + self.y as i128
     }
 }
 
@@ -309,6 +318,32 @@ mod tests {
             y_range: (0, 20),
         };
         let point = find_no_beacon_zone(sensors, search_space);
+        println!(
+            "TEST Tuning freq of missing beacon is {} at x:{} and y:{}",
+            point.get_tuning_freqency(),
+            point.x,
+            point.y
+        );
         assert_eq!(56000011, point.get_tuning_freqency());
+    }
+
+    #[test]
+    fn test_get_edges() {
+        let data = "Sensor at x=9, y=16: closest beacon is at x=10, y=16";
+        let sensors = read_sensor_data(data.into());
+        let mut edges = vec![
+            GridPos { x: 9, y: 18 },
+            GridPos { x: 9, y: 14 },
+            GridPos { x: 7, y: 16 },
+            GridPos { x: 11, y: 16 },
+            GridPos { x: 8, y: 17 },
+            GridPos { x: 10, y: 17 },
+            GridPos { x: 8, y: 15 },
+            GridPos { x: 10, y: 15 },
+        ];
+        edges.sort();
+        let mut found = sensors[0].get_edge_points();
+        found.sort();
+        assert_eq!(edges, found);
     }
 }
