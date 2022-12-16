@@ -8,56 +8,28 @@ const DAY: &str = "{{ DAY 16 }}";
 
 /// --- Day 16: Proboscidea Volcanium ---
 /// Its a dynamic programming problem
+/// Work out the steps to release the most pressure in 30 minutes. What is the most pressure you can release?
 pub fn part1() {
     let data = read_data(FILE);
-
-    let data = "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
-        Valve BB has flow rate=13; tunnels lead to valves CC, AA
-        Valve CC has flow rate=2; tunnels lead to valves DD, BB
-        Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE
-        Valve EE has flow rate=3; tunnels lead to valves FF, DD
-        Valve FF has flow rate=0; tunnels lead to valves EE, GG
-        Valve GG has flow rate=0; tunnels lead to valves FF, HH
-        Valve HH has flow rate=22; tunnel leads to valve GG
-        Valve II has flow rate=0; tunnels lead to valves AA, JJ
-        Valve JJ has flow rate=21; tunnel leads to valve II";
-
     let valves = read_valves_and_tunnels(data.into());
     let map = convert_vec_to_hashmap(&valves);
-    let max_p = find_max_pressure(&map, "AA".into(), 0, Vec::new(), 30, false);
+    let max_p = find_max_pressure_memo_helper(&map, "AA".into(), 0, Vec::new(), 30);
 
     println!("{DAY}-1 Max pressure released is {max_p}");
 }
 
+/// You're worried that even with an optimal approach, the pressure released won't be enough.
+/// What if you got one of the elephants to help you?
+/// With the elephant helping, after 26 minutes, the best you could do would release a total of 1707 pressure.
+///
+/// With you and an elephant working together for 26 minutes, what is the most pressure you could release?
 pub fn part2() {
     let data = read_data(FILE);
 }
 
-fn find_max_pressure_memo_helper(
-    valves: &HashMap<String, Valve>,
-    curr_pos: String,
-    curr_flow: usize,
-    opened: Vec<String>,
-    time_remaining: usize,
-) -> usize {
-    let mut string_int_name_map = HashMap::new();
-    let mut int_valves: HashMap<usize, Valve> = HashMap::new();
-    valves.iter().enumerate().for_each(|(i, (k, v))| {
-        string_int_name_map.insert(k, i);
-        int_valves.insert(i, v.clone());
-    });
-    let pos_int = string_int_name_map.get(&curr_pos).unwrap();
-    let param = MemoizedParam {
-        flow: curr_flow,
-        pos: *pos_int,
-        time: time_remaining,
-        opened: OpenedString { opened: "".into() },
-    };
-    find_max_pressure_memo(&int_valves, &mut HashMap::new(), param)
-}
-
-fn find_max_pressure_memo(
+fn find_max_pressure_memo_elephant(
     valves: &HashMap<usize, Valve>,
+    str_int_map: &HashMap<&String, usize>,
     memo: &mut HashMap<MemoizedParam, usize>,
     param: MemoizedParam,
 ) -> usize {
@@ -79,12 +51,11 @@ fn find_max_pressure_memo(
     if !param.opened.contains(param.pos) {
         // skipping blocked valves
         if valves.get(&param.pos).unwrap().flow_rate != 0 {
-            let mut new_opened = param.opened.clone();
-
-            new_opened.add_visit(param.pos);
+            let mut new_opened = param.opened.add_visit(param.pos);
             options.push(
                 find_max_pressure_memo(
                     valves,
+                    str_int_map,
                     memo,
                     MemoizedParam {
                         flow: param.flow + valves.get(&param.pos).unwrap().flow_rate,
@@ -98,13 +69,106 @@ fn find_max_pressure_memo(
     }
 
     for v in valves.get(&param.pos).unwrap().tunnels.iter() {
+        let new_pos: usize = *str_int_map.get(v).unwrap();
         options.push(
             find_max_pressure_memo(
                 valves,
+                str_int_map,
                 memo,
                 MemoizedParam {
-                    flow: param.flow + valves.get(&param.pos).unwrap().flow_rate,
-                    pos: param.pos,
+                    flow: param.flow,
+                    pos: new_pos,
+                    time: param.time - 1,
+                    opened: param.opened.clone(),
+                },
+            ) + param.flow,
+        );
+    }
+
+    let max_release = *options.iter().max().unwrap();
+    memo.insert(param.clone(), max_release);
+    max_release
+}
+
+fn find_max_pressure_memo_helper(
+    valves: &HashMap<String, Valve>,
+    curr_pos: String,
+    curr_flow: usize,
+    opened: Vec<String>,
+    time_remaining: usize,
+) -> usize {
+    let mut string_int_name_map: HashMap<&String, usize> = HashMap::new();
+    let mut int_valves: HashMap<usize, Valve> = HashMap::new();
+    valves.iter().enumerate().for_each(|(i, (k, v))| {
+        string_int_name_map.insert(k, i);
+        int_valves.insert(i, v.clone());
+    });
+    let pos_int = string_int_name_map.get(&curr_pos).unwrap();
+    let param = MemoizedParam {
+        flow: curr_flow,
+        pos: *pos_int,
+        time: time_remaining,
+        opened: OpenedString { opened: "".into() },
+    };
+    find_max_pressure_memo(
+        &int_valves,
+        &string_int_name_map,
+        &mut HashMap::new(),
+        param,
+    )
+}
+
+fn find_max_pressure_memo(
+    valves: &HashMap<usize, Valve>,
+    str_int_map: &HashMap<&String, usize>,
+    memo: &mut HashMap<MemoizedParam, usize>,
+    param: MemoizedParam,
+) -> usize {
+    if memo.get(&param).is_some() {
+        return *memo.get(&param).unwrap();
+    }
+    if param.time <= 0 {
+        memo.insert(param.clone(), 0);
+        return 0;
+    }
+    // moving to new valve or opening wont do anything
+    if param.time == 1 {
+        memo.insert(param.clone(), param.flow);
+        return param.flow;
+    }
+
+    let mut options = Vec::new();
+    // cannot open opened valve
+    if !param.opened.contains(param.pos) {
+        // skipping blocked valves
+        if valves.get(&param.pos).unwrap().flow_rate != 0 {
+            let mut new_opened = param.opened.add_visit(param.pos);
+            options.push(
+                find_max_pressure_memo(
+                    valves,
+                    str_int_map,
+                    memo,
+                    MemoizedParam {
+                        flow: param.flow + valves.get(&param.pos).unwrap().flow_rate,
+                        pos: param.pos,
+                        time: param.time - 1,
+                        opened: new_opened,
+                    },
+                ) + param.flow,
+            );
+        }
+    }
+
+    for v in valves.get(&param.pos).unwrap().tunnels.iter() {
+        let new_pos: usize = *str_int_map.get(v).unwrap();
+        options.push(
+            find_max_pressure_memo(
+                valves,
+                str_int_map,
+                memo,
+                MemoizedParam {
+                    flow: param.flow,
+                    pos: new_pos,
                     time: param.time - 1,
                     opened: param.opened.clone(),
                 },
