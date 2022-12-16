@@ -104,4 +104,8 @@ fn main() {
         day15::part1();
         day15::part2();
     }
+    if !completed.contains(&16) {
+        day16::part1();
+        day16::part2();
+    }
 }
