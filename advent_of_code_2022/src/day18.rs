@@ -107,6 +107,8 @@ fn find_air_cubes(cubes: &Vec<Cube>) -> HashSet<Cube> {
         if neighbors == 6 {
             // is a air pocket
             i += 1;
+        } else if neighbors > 6 {
+            unreachable!("Cant have more than 6 orthogonal neighbors");
         } else {
             possible_pockets.remove(i);
         }
