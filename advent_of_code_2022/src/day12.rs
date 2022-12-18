@@ -91,8 +91,8 @@ struct ElevationMap {
 }
 
 fn read_map(data: String) -> ElevationMap {
-    const START_MARKER: u8 = 99;
-    const END_MARKER: u8 = 100;
+    let mut start_marker: u8 = 99;
+    let mut end_marker: u8 = 100;
     let mut map: Vec<Vec<u8>> = data
         .lines()
         .map(|line| {
@@ -100,9 +100,9 @@ fn read_map(data: String) -> ElevationMap {
                 .chars()
                 .map(|c| {
                     if c == 'E' {
-                        END_MARKER
+                        end_marker
                     } else if c == 'S' {
-                        START_MARKER
+                        start_marker
                     } else {
                         c as u8 - 'a' as u8
                     }
@@ -115,10 +115,10 @@ fn read_map(data: String) -> ElevationMap {
     let mut end = (0, 0);
     for (y, row) in map.iter_mut().enumerate() {
         for (x, val) in row.iter_mut().enumerate() {
-            if val == &mut START_MARKER {
+            if val == &mut start_marker {
                 start = (x, y);
                 *val = 'a' as u8 - 'a' as u8
-            } else if val == &mut END_MARKER {
+            } else if val == &mut end_marker {
                 end = (x, y);
                 *val = 'z' as u8 - 'a' as u8
             }

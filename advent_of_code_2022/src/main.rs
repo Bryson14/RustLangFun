@@ -28,7 +28,7 @@ mod utils;
 
 fn main() {
     let completed = [1, 2, 3, 4, 5, 6, 7, 8, 15];
-    let unfinished = [9, 10, 11, 12, 13, 14];
+    let _unfinished = [9, 10, 11, 12, 13, 14, 16, 17, 18];
 
     if !completed.contains(&1) {
         day1::part1();
@@ -105,7 +105,17 @@ fn main() {
         day15::part2();
     }
     if !completed.contains(&16) {
-        day16::part1();
+        // day16::part1();
         day16::part2();
+    }
+
+    // if !completed.contains(&17) {
+    //     day17::part1();
+    //     day17::part2();
+    // }
+
+    if !completed.contains(&18) {
+        day18::part1();
+        day18::part2();
     }
 }

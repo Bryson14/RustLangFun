@@ -44,10 +44,10 @@ pub fn part1() {
 ///
 /// The distress signal protocol also requires that you include two additional divider packets:
 pub fn part2() {
-    let mut data = read_data(FILE);
+    let data = read_data(FILE);
     let divider2 = DataStr::from_str("[[2]]");
     let divider6 = DataStr::from_str("[[6]]");
-    let mut lines = data
+    let lines = data
         .lines()
         .filter(|line| !line.is_empty())
         .map(|line| DataStr::from_str(line));
