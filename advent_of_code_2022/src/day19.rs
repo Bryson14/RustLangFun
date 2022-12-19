@@ -1,5 +1,6 @@
 #![allow(unused)]
 use regex::Regex;
+use std::collections::{HashSet, VecDeque};
 use std::fmt;
 
 use crate::utils::read_data;
@@ -24,15 +25,123 @@ const DAY: &str = "{{ DAY 19 }}";
 pub fn part1() {
     let data = read_data(FILE);
     let blueprints = parse_blueprint(data);
+    let time_limit = 24;
     let ans = blueprints
         .iter()
-        .map(|bp| calculate_geode(bp) * bp.id)
+        .map(|bp| set_robots_to_work(bp, time_limit) * bp.id)
         .sum::<usize>();
     println!("{DAY}-1 The sum of the quality points of each blueprint is {ans}");
 }
 
+/// You no longer have enough blueprints to worry about quality levels.
+/// Instead, for each of the first three blueprints, determine the largest
+/// number of geodes you could open; then, multiply these three values together.
+///
+/// Don't worry about quality levels; instead, just determine the largest number
+/// of geodes you could open using each of the first three blueprints.
+/// What do you get if you multiply these numbers together?
 pub fn part2() {
     let data = read_data(FILE);
+    let blueprints = parse_blueprint(data);
+    let time_limit = 32;
+    let ans = blueprints
+        .iter()
+        .take(3)
+        .map(|bp| set_robots_to_work(bp, time_limit))
+        .product::<usize>();
+    println!("{DAY}-3 The product of first three blueprints is {ans}");
+}
+
+fn set_robots_to_work(blueprint: &Blueprint, time_limit: usize) -> usize {
+    let mut unseen_states = VecDeque::new();
+    let starting_state = GameState::new(time_limit);
+    let mut best_geode = 0;
+    let mut seen_states = HashSet::new();
+    unseen_states.push_back(starting_state);
+
+    while let Some(mut state) = unseen_states.pop_front() {
+        best_geode = best_geode.max(state.geodes);
+        if state.geodes + 1 < best_geode || seen_states.contains(&state) {
+            continue;
+        }
+
+        seen_states.insert(state);
+        if state.time == 0 {
+            continue;
+        }
+        if state.ore >= blueprint.ore_robot {
+            let mut next_state = state;
+            next_state.ore -= blueprint.ore_robot;
+            next_state.robots_dig();
+            next_state.ore_robots += 1;
+            unseen_states.push_back(next_state);
+        }
+        if state.ore >= blueprint.clay_robot {
+            let mut next_state = state;
+            next_state.ore -= blueprint.clay_robot;
+            next_state.robots_dig();
+            next_state.clay_robots += 1;
+            unseen_states.push_back(next_state);
+        }
+        if state.ore >= blueprint.obsidian_robot.0 && state.clay >= blueprint.obsidian_robot.1 {
+            let mut next_state = state;
+            next_state.ore -= blueprint.obsidian_robot.0;
+            next_state.clay -= blueprint.obsidian_robot.1;
+            next_state.robots_dig();
+            next_state.obsidian_robots += 1;
+            unseen_states.push_back(next_state);
+        }
+        if state.ore >= blueprint.geode_robot.0 && state.obsidian >= blueprint.geode_robot.1 {
+            let mut next_state = state;
+            next_state.ore -= blueprint.geode_robot.0;
+            next_state.obsidian -= blueprint.geode_robot.1;
+            next_state.robots_dig();
+            next_state.geode_robots += 1;
+            unseen_states.push_back(next_state);
+        }
+        state.robots_dig();
+        unseen_states.push_back(state);
+    }
+
+    println!("Blueprint {} , geodes {}", blueprint.id, best_geode);
+    best_geode
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+struct GameState {
+    ore: usize,
+    ore_robots: usize,
+    clay: usize,
+    clay_robots: usize,
+    obsidian: usize,
+    obsidian_robots: usize,
+    geodes: usize,
+    geode_robots: usize,
+    time: usize,
+}
+
+impl GameState {
+    fn new(time: usize) -> Self {
+        GameState {
+            ore: 0,
+            ore_robots: 1,
+            clay: 0,
+            clay_robots: 0,
+            obsidian: 0,
+            obsidian_robots: 0,
+            geodes: 0,
+            geode_robots: 0,
+            time: time,
+        }
+    }
+
+    fn robots_dig(&mut self) {
+        self.ore += self.ore_robots;
+        self.clay += self.clay_robots;
+        self.obsidian += self.obsidian_robots;
+        self.geodes += self.geode_robots;
+        self.time -= 1;
+    }
 }
 
 fn parse_blueprint(data: String) -> Vec<Blueprint> {

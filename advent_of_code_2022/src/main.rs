@@ -120,7 +120,7 @@ fn main() {
     }
 
     if !completed.contains(&19) {
-        day19::part1();
+        // day19::part1();
         day19::part2();
     }
 }
