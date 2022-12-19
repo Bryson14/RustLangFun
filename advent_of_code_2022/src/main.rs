@@ -118,4 +118,9 @@ fn main() {
         day18::part1();
         day18::part2();
     }
+
+    if !completed.contains(&19) {
+        day19::part1();
+        day19::part2();
+    }
 }
