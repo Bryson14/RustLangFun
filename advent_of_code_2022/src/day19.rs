@@ -227,6 +227,5 @@ mod tests {
         for bp in blueprints.iter() {
             println!("{bp}");
         }
-        assert!(false)
     }
 }
