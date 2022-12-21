@@ -16,37 +16,39 @@ const DAY: &str = "{{ DAY 20 }}";
 pub fn part1() {
     let data = read_data(FILE);
     let nums = read_nums(data);
-    let nums_set: HashSet<i32> = HashSet::from_iter(nums.iter().map(|data| data.val));
-
-    assert_eq!(nums.len(), nums_set.len());
+    let nums = decrypt(nums, 1);
+    println!("{DAY}-1 ans to number mixing in {}", get_coordinates(nums));
 }
 
 pub fn part2() {
     let data = read_data(FILE);
+    let mut nums = read_nums(data);
+    nums.iter_mut()
+        .for_each(|data| data.val = data.val * 811589153);
+    let nums = decrypt(nums, 10);
+    println!("{DAY}-1 ans to number mixing in {}", get_coordinates(nums));
 }
 
-fn mix_numbers(nums: Vec<Data>) -> Vec<Data> {
-    // get idx of next in line
-    for i in 0..nums.len() {
-        let data_idx = nums.iter().position(|data| data.move_pos == i).unwrap();
-        let data = nums.remove(data_idx);
-        let insert_idx = data_idx;
-        if data.val > data_idx as i32 {
-            let diff = data.val - data_idx as i32;
-
-            insert_idx = nums.len() - (data)
+fn decrypt(mut nums: Vec<Data>, cycles: usize) -> Vec<Data> {
+    let message_size = nums.len() as i64 - 1;
+    for _mixing_round in 0..cycles {
+        for current in 0..nums.len() {
+            let index = nums.iter().position(|x| x.original_pos == current).unwrap();
+            let mut new_index = index as i64 + nums[index].val;
+            new_index = ((new_index % message_size) + message_size) % message_size;
+            let number = nums.remove(index);
+            nums.insert(new_index as usize, number);
         }
     }
-    // find loc to move it to
-    // rm and insert val
-    todo!()
+
+    nums
 }
 
 /// Then, the grove coordinates can be found by looking at the 1000th, 2000th, and 3000th numbers
 ///  after the value 0, wrapping around the list as necessary.
 /// In the above example, the 1000th number after 0 is 4, the 2000th is -3, and the 3000th is 2;
 /// adding these together produces 3.
-fn get_coordinates(nums: Vec<Data>) -> i32 {
+fn get_coordinates(nums: Vec<Data>) -> i64 {
     let zero_idx = nums
         .iter()
         .position(|data| data.val == 0)
@@ -67,14 +69,14 @@ fn read_nums(data: String) -> Vec<Data> {
                 .trim()
                 .parse()
                 .expect(&format!("Could not parse {line} to i32")),
-            move_pos: i,
+            original_pos: i,
         })
         .collect()
 }
 
 struct Data {
-    val: i32,
-    move_pos: usize,
+    val: i64,
+    original_pos: usize,
 }
 
 #[cfg(test)]
