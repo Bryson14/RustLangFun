@@ -128,4 +128,19 @@ fn main() {
         day20::part1();
         day20::part2();
     }
+
+    if !completed.contains(&21) {
+        day21::part1();
+        day21::part2();
+    }
+
+    if !completed.contains(&22) {
+        day22::part1();
+        day22::part2();
+    }
+
+    if !completed.contains(&23) {
+        day23::part1();
+        day23::part2();
+    }
 }
