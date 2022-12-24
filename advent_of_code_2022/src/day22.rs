@@ -1,4 +1,5 @@
 use crate::utils::read_data;
+use std::fmt;
 
 const FILE: &str = "day21.txt";
 const DAY: &str = "{{ DAY 21 }}";
@@ -151,6 +152,17 @@ enum Direction {
     Left,
     Up,
     Down,
+}
+
+impl fmt::Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Direction::Down => write!(f, "Direction::Down"),
+            Direction::Left => write!(f, "Direction::Left"),
+            Direction::Up => write!(f, "Direction::Up"),
+            Direction::Right => write!(f, "Direction::Right"),
+        }
+    }
 }
 
 #[cfg(test)]
