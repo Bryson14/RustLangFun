@@ -27,7 +27,7 @@ mod day9;
 mod utils;
 
 fn main() {
-    let completed = [1, 2, 3, 4, 5, 6, 7, 8, 13, 15, 19];
+    let completed = [2, 3, 4, 5, 6, 7, 8, 13, 15, 19];
     let _unfinished = [9, 10, 11, 12, 13, 14, 16, 17, 18];
 
     if !completed.contains(&1) {
