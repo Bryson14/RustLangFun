@@ -1,0 +1,13 @@
+[package]
+name = "recipe_axum_graphql_webserver"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.5.17"
+tokio = {version = "1.18.2", features = ["full"]}
+serde = {version = "1.0.147", features = ["derive"]}
+async-graphql = "4.0.16"
+async-graphql-axum = "4.0.16"
