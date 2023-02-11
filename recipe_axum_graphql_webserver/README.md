@@ -1,1 +1,1 @@
-)Based on tutorial here on [medium](https://betterprogramming.pub/build-a-graphql-api-using-rust-edf3554adf8f
+Based on tutorial here on [medium](https://betterprogramming.pub/build-a-graphql-api-using-rust-edf3554adf8f)
