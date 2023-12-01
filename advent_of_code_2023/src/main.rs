@@ -41,8 +41,8 @@ fn main() {
     }
 
     // Check if the correct number of arguments is provided
-    if args.len() < 2 || args.len() > 3 {
-        eprintln!("Usage: {} <day> [part]", args[0]);
+    if args.len() < 2 || args.len() > 4 {
+        eprintln!("Usage: {} <day> [part] [test]", args[0]);
         std::process::exit(1);
     }
 
@@ -61,11 +61,18 @@ fn main() {
         std::process::exit(1);
     }));
 
+    // Parse the optional "test" argument
+    // check if the argument is "test", else default to false
+    let test_mode: bool = args.get(3).map_or(false, |arg| arg == "test");
+    if (test_mode ) {
+        println!("Running in test mode");
+    }
+
     // Call the run_day function with the provided day and part
-    run_day(day, part);
+    run_day(day, part, test_mode);
 }
 
-fn run_day(day: u32, part: Option<u32>) {
+fn run_day(day: u32, part: Option<u32>, test_mode: bool) {
     // Your program logic here, using 'day' and 'part' as needed
     println!("Day: {}", day);
     if let Some(part) = part {
@@ -77,31 +84,31 @@ fn run_day(day: u32, part: Option<u32>) {
 
     // Call the day's run function
     match day {
-        1 => day01::run(part),
-        2 => day02::run(part),
-        3 => day03::run(part),
-        4 => day04::run(part),
-        5 => day05::run(part),
-        6 => day06::run(part),
-        7 => day07::run(part),
-        8 => day08::run(part),
-        9 => day09::run(part),
-        10 => day10::run(part),
-        11 => day11::run(part),
-        12 => day12::run(part),
-        13 => day13::run(part),
-        14 => day14::run(part),
-        15 => day15::run(part),
-        16 => day16::run(part),
-        17 => day17::run(part),
-        18 => day18::run(part),
-        19 => day19::run(part),
-        20 => day20::run(part),
-        21 => day21::run(part),
-        22 => day22::run(part),
-        23 => day23::run(part),
-        24 => day24::run(part),
-        25 => day25::run(part),
+        1 => day01::run(part, test_mode),
+        // 2 => day02::run(part, test_mode),
+        // 3 => day03::run(part, test_mode),
+        // 4 => day04::run(part, test_mode),
+        // 5 => day05::run(part, test_mode),
+        // 6 => day06::run(part, test_mode),
+        // 7 => day07::run(part, test_mode),
+        // 8 => day08::run(part, test_mode),
+        // 9 => day09::run(part, test_mode),
+        // 10 => day10::run(part, test_mode),
+        // 11 => day11::run(part, test_mode),
+        // 12 => day12::run(part, test_mode),
+        // 13 => day13::run(part, test_mode),
+        // 14 => day14::run(part, test_mode),
+        // 15 => day15::run(part, test_mode),
+        // 16 => day16::run(part, test_mode),
+        // 17 => day17::run(part, test_mode),
+        // 18 => day18::run(part, test_mode),
+        // 19 => day19::run(part, test_mode),
+        // 20 => day20::run(part, test_mode),
+        // 21 => day21::run(part, test_mode),
+        // 22 => day22::run(part, test_mode),
+        // 23 => day23::run(part, test_mode),
+        // 24 => day24::run(part, test_mode),
+        // 25 => day25::run(part, test_mode),
         _ => {
             eprintln!("Error: Invalid day number");
             std::process::exit(1);

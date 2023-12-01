@@ -4,10 +4,19 @@ mod part1;
 mod part2;
 mod input;
 
-pub fn run(part: Option<u32>) {
+pub fn run(part: Option<u32>, test_mode: bool) {
     // Your code to run for the entire day
     // Call part1 and/or part2 functions based on the 'part' parameter
-    let input_data = input::get_input();
+    let input_data: String;
+    let example_answer: String;
+
+    if (test_mode) {
+        input_data = input::get_example_input();
+        example_answer = input::get_example_answer();
+        
+    } else {
+        input_data = input::get_input();
+    }
 
     match part {
         Some(1) => {
@@ -26,5 +35,9 @@ pub fn run(part: Option<u32>) {
             println!("Running Part 2");
             part2::solve(&input_data);
         }
+    }
+
+    if (test_mode) {
+        println!("Example Answer: {}", example_answer);
     }
 }
