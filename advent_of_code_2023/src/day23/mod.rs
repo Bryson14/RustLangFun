@@ -1,13 +1,29 @@
 // src/day01/mod.rs
 
+use crate::utils;
 mod part1;
 mod part2;
-mod input;
 
-pub fn run(part: Option<u32>) {
+pub fn run(part: Option<u32>, test_mode: bool) {
     // Your code to run for the entire day
     // Call part1 and/or part2 functions based on the 'part' parameter
-    let input_data = input::get_input();
+    let input_data: String;
+    let mut example_answer: String = String::from("None");
+    const DAY: &str = "01";
+
+    if test_mode {
+        let part_str = match part {
+            Some(1) => "1",
+            Some(2) => "2",
+            _ => "1",
+        };
+        let (example_input, ans) = utils::get_example(DAY, part_str);
+        input_data = example_input;
+        example_answer = ans;
+        
+    } else {
+        input_data = utils::get_input(DAY);
+    }
 
     match part {
         Some(1) => {
@@ -26,5 +42,9 @@ pub fn run(part: Option<u32>) {
             println!("Running Part 2");
             part2::solve(&input_data);
         }
+    }
+
+    if test_mode {
+        println!("Example Answer: {}", example_answer);
     }
 }
