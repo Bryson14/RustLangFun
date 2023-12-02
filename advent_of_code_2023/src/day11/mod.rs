@@ -20,7 +20,6 @@ pub fn run(part: Option<u32>, test_mode: bool) {
         let (example_input, ans) = utils::get_example(DAY, part_str);
         input_data = example_input;
         example_answer = ans;
-        
     } else {
         input_data = utils::get_input(DAY);
     }
