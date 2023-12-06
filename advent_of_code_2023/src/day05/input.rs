@@ -42,8 +42,7 @@ impl ConversionChart {
         // if there is a match, return the converted range + recurse on the unconverted ranges
         for conversion in &self.conversions {
             let mapping = conversion.map_range_to_ranges(range.clone());
-            if let Some(converted_range) = mapping.converted_range
-            {
+            if let Some(converted_range) = mapping.converted_range {
                 // Recursively process unconverted ranges
                 let mut result_ranges = vec![converted_range];
                 let recursive_results: Vec<Range<_>> = mapping
@@ -368,8 +367,6 @@ mod tests {
         };
         assert_eq!(conversion.map_range_to_ranges(2..49), expected);
     }
-
-    
 
     #[test]
     fn test_map_range_to_ranges() {

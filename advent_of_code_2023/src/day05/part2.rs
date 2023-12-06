@@ -25,9 +25,9 @@ pub fn solve(input: &str) {
 
     let answer = new_seeds
         .iter()
-        .map(|seed_range| {
-            map_seed_range_to_location(seed_range.clone(), &charts)
-        }).min().unwrap();
+        .map(|seed_range| map_seed_range_to_location(seed_range.clone(), &charts))
+        .min()
+        .unwrap();
 
     println!("Minimum location of all seed ranges: {}", answer);
 }
@@ -38,7 +38,6 @@ fn map_seed_range_to_location(seed_range: Range<u64>, charts: &Vec<input::Conver
 
     // passes all the ranges through the each chart
     for chart in charts {
-        
         for range in ranges.iter() {
             let converted_ranges = chart.map_range_to_ranges(range.clone());
             next_ranges.extend(converted_ranges);
@@ -49,11 +48,7 @@ fn map_seed_range_to_location(seed_range: Range<u64>, charts: &Vec<input::Conver
     }
 
     // find the minimum value in the ranges
-    ranges
-        .iter()
-        .map(|range| range.start)
-        .min()
-        .unwrap()
+    ranges.iter().map(|range| range.start).min().unwrap()
 }
 
 // converts a vector of seeds into a vector of ranges
