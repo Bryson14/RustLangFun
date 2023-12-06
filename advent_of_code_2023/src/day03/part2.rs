@@ -1,5 +1,5 @@
+use super::input::{get_engine_symbol_map, read_to_map, EngineSymbol, EngineSymbolType, Map};
 use std::collections::{HashMap, HashSet};
-use super::input::{EngineSymbol, EngineSymbolType, Map, read_to_map, get_engine_symbol_map};
 /// # --- Part Two ---
 /// The engineer finds the missing part and installs it in the engine! As the engine springs to life, you jump in the closest gondola, finally ready to ascend to the water source.
 ///
@@ -34,8 +34,10 @@ pub fn solve(input: &str) {
 
     let sum = sum_gear_ratios(&map, &map_lookup);
 
-    println!("The sum of all of the gear ratios in your engine schematic is {}", sum);
-
+    println!(
+        "The sum of all of the gear ratios in your engine schematic is {}",
+        sum
+    );
 }
 
 fn sum_gear_ratios(map: &Map, map_lookup: &HashMap<(usize, usize), EngineSymbol>) -> u32 {
@@ -65,7 +67,9 @@ fn sum_gear_ratios(map: &Map, map_lookup: &HashMap<(usize, usize), EngineSymbol>
                         let y3 = y2 + y as i32;
 
                         if x3 >= 0 && y3 >= 0 && x3 < map.width as i32 && y3 < map.height as i32 {
-                            if let Some(adjacent_symbol) = map_lookup.get(&(x3 as usize, y3 as usize)) {
+                            if let Some(adjacent_symbol) =
+                                map_lookup.get(&(x3 as usize, y3 as usize))
+                            {
                                 if visited_ids.contains(&adjacent_symbol.id) {
                                     continue;
                                 }
@@ -88,4 +92,3 @@ fn sum_gear_ratios(map: &Map, map_lookup: &HashMap<(usize, usize), EngineSymbol>
 
     gear_ratios_sum
 }
-

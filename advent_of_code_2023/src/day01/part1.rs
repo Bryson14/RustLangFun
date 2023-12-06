@@ -28,7 +28,7 @@ pub fn solve(input: &str) {
     let ans: u32 = input
         .lines()
         .map(|line| {
-            let mut chars = line.chars().filter(|c| c.is_digit(10));
+            let mut chars = line.chars().filter(|c| c.is_ascii_digit());
 
             // if there is no last, then double the first char
             let first = chars

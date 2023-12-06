@@ -97,11 +97,7 @@ fn parse_game_set(input: &str) -> GameSet {
         }
     }
 
-    GameSet {
-        green: green,
-        red: red,
-        blue: blue,
-    }
+    GameSet { green, red, blue }
 }
 
 /// Parses a single input line into a Game struct
@@ -118,17 +114,14 @@ pub fn parse_game(input: &str) -> Game {
     let sets_split = input_split.nth(1).unwrap().split(';');
 
     // parse each set into a GameSet struct
-    let sets: Vec<GameSet> = sets_split.map(|set| parse_game_set(set)).collect();
+    let sets: Vec<GameSet> = sets_split.map(parse_game_set).collect();
 
-    Game {
-        id: game_id,
-        sets: sets,
-    }
+    Game { id: game_id, sets }
 }
 
 /// Parses the entire input file into a vector of Game structs
 pub fn parse_games(input: &str) -> Vec<Game> {
-    input.lines().map(|line| parse_game(line)).collect()
+    input.lines().map(parse_game).collect()
 }
 
 #[cfg(test)]

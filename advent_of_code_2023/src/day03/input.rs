@@ -53,7 +53,7 @@ pub fn get_engine_symbol_map(map: &Map) -> HashMap<(usize, usize), EngineSymbol>
 
             let c = map.map[y][x];
             // check if c is a digit
-            if c.is_digit(10) {
+            if c.is_ascii() {
                 let num: u32 = c.to_digit(10).unwrap();
                 let mut x2 = x + 1;
                 let mut digits: Vec<u32> = vec![num];
@@ -61,7 +61,7 @@ pub fn get_engine_symbol_map(map: &Map) -> HashMap<(usize, usize), EngineSymbol>
                 // check if the next character is a digit
                 while x2 < map.width {
                     let c2 = map.map[y][x2];
-                    if c2.is_digit(10) {
+                    if c2.is_ascii_digit() {
                         // add the neighboring x coordinate to the visited set
                         visited.insert(x2 as u32);
                         let num = c2.to_digit(10).unwrap();
@@ -79,7 +79,7 @@ pub fn get_engine_symbol_map(map: &Map) -> HashMap<(usize, usize), EngineSymbol>
                         (x + i, y),
                         EngineSymbol {
                             symbol_type: EngineSymbolType::Number(num),
-                            id: id,
+                            id,
                         },
                     );
                 }
@@ -87,7 +87,7 @@ pub fn get_engine_symbol_map(map: &Map) -> HashMap<(usize, usize), EngineSymbol>
                     (x, y),
                     EngineSymbol {
                         symbol_type: EngineSymbolType::Number(num),
-                        id: id,
+                        id,
                     },
                 );
             } else if c == '.' {
@@ -95,7 +95,7 @@ pub fn get_engine_symbol_map(map: &Map) -> HashMap<(usize, usize), EngineSymbol>
                     (x, y),
                     EngineSymbol {
                         symbol_type: EngineSymbolType::Empty,
-                        id: id,
+                        id,
                     },
                 );
             } else {
@@ -103,7 +103,7 @@ pub fn get_engine_symbol_map(map: &Map) -> HashMap<(usize, usize), EngineSymbol>
                     (x, y),
                     EngineSymbol {
                         symbol_type: EngineSymbolType::Symbol(c),
-                        id: id,
+                        id,
                     },
                 );
             }

@@ -1,6 +1,7 @@
 // src/day01/mod.rs
 
 use crate::utils;
+mod input;
 mod part1;
 mod part2;
 

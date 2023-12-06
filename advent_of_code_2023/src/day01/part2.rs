@@ -1,9 +1,6 @@
 pub fn solve(input: &str) {
     // iterate over each line and get the two digits in the string
-    let ans = input
-        .lines()
-        .map(|line| get_numbers_from_line(line))
-        .sum::<u32>();
+    let ans = input.lines().map(get_numbers_from_line).sum::<u32>();
 
     println!("Answer: {}", ans)
 }
@@ -68,7 +65,7 @@ fn find_digits(input: &str) -> Vec<NumberPosition> {
     input
         .chars()
         .enumerate()
-        .filter(|(_, c)| c.is_digit(10))
+        .filter(|(_, c)| c.is_ascii())
         .map(|(i, c)| NumberPosition {
             number: c.to_digit(10).unwrap(),
             position: i,

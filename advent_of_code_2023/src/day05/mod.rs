@@ -1,6 +1,7 @@
 // src/day01/mod.rs
 
 use crate::utils;
+mod input;
 mod part1;
 mod part2;
 
@@ -9,7 +10,7 @@ pub fn run(part: Option<u32>, test_mode: bool) {
     // Call part1 and/or part2 functions based on the 'part' parameter
     let input_data: String;
     let mut example_answer: String = String::from("None");
-    const DAY: &str = "01";
+    const DAY: &str = "05";
 
     if test_mode {
         let part_str = match part {

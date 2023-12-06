@@ -1,12 +1,12 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn read_file(file_path: &Path) -> String {
     // Check if the file exists and is a file
     if let Ok(metadata) = fs::metadata(file_path) {
         if metadata.is_file() {
-            return fs::read_to_string(file_path)
-                .expect(&format!("Unable to read file: {:?}", file_path.display()));
+            fs::read_to_string(file_path)
+                .unwrap_or_else(|_| panic!("Unable to read file: {:?}", file_path.display()))
         } else {
             panic!("Specified path is not a file: {:?}", file_path);
         }
@@ -29,9 +29,8 @@ pub fn get_input(day: &str) -> String {
     let absolute_path = input_path
         .canonicalize()
         .expect("Unable to get absolute path");
-    let input = read_file(&absolute_path);
 
-    input
+    read_file(&absolute_path)
 }
 
 pub fn get_example(day: &str, part: &str) -> (String, String) {
