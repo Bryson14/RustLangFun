@@ -34,37 +34,31 @@ impl ConversionChart {
         destination
     }
 
-    /// We can walk through each conversion and see if our input range is fully covered, needs to split between multiple conversions, or has to fall back onto the default 1 to 1 conversion.
-    /// We have three scenarios:
-    /// Where a single conversion covers the entire range of the input
-    /// Where a single conversion covers one end of the input
-    /// Where a single conversion covers a middle section of the input
+    /// maps a range to a vector of ranges by passing it through the conversion chart
+    /// conversion chart represents just one level of the conversion
+    /// try to map the range to an possible conversion
     pub fn map_range_to_ranges(&self, range: Range<u64>) -> Vec<Range<u64>> {
-        let mut unconverted_ranges: Vec<Range<u64>> = vec![range];
-    
+        // go through each conversion and try to map the range to it
+        // if there is a match, return the converted range + recurse on the unconverted ranges
         for conversion in &self.conversions {
-            let mut i = 0;
-            while i < unconverted_ranges.len() {
-                let unconverted_range = unconverted_ranges[i].clone();
-                let mapping = conversion.map_range_to_ranges(unconverted_range);
-    
-                if let Some(converted_range) = mapping.converted_range {
-                    unconverted_ranges.extend(mapping.unconverted_ranges);
-                    unconverted_ranges.push(converted_range);
-                } else {
-                    // If the range couldn't be converted, keep it for the next iteration
-                    unconverted_ranges.push(mapping.unconverted_ranges.into_iter().next().unwrap());
-                }
-    
-                i += 1;
+            let mapping = conversion.map_range_to_ranges(range.clone());
+            if let Some(converted_range) = mapping.converted_range
+            {
+                // Recursively process unconverted ranges
+                let mut result_ranges = vec![converted_range];
+                let recursive_results: Vec<Range<_>> = mapping
+                    .unconverted_ranges
+                    .iter()
+                    .flat_map(|r| self.map_range_to_ranges(r.clone()))
+                    .collect();
+                result_ranges.extend(recursive_results);
+                return result_ranges;
             }
-            // Clear the unconverted_ranges and add the newly converted ranges
-            unconverted_ranges.clear();
         }
-    
-        unconverted_ranges
+
+        // If no conversion matches, return the original range
+        vec![range]
     }
-    
 }
 
 impl Conversion {
@@ -107,8 +101,7 @@ impl Conversion {
                 }
             } else {
                 // scenario 3: range starts before the source range, and ends after source + len
-                let converted_range = self.destination
-                    ..self.destination + self.range_len;
+                let converted_range = self.destination..self.destination + self.range_len;
                 let left_unconverted_range = range.start..self.source;
                 let right_unconverted_range = self.source + self.range_len..range.end;
                 RangeMapping {
@@ -376,9 +369,11 @@ mod tests {
         assert_eq!(conversion.map_range_to_ranges(2..49), expected);
     }
 
+    
+
     #[test]
     fn test_map_range_to_ranges() {
-        let chart = ConversionChart{
+        let chart = ConversionChart {
             name: String::from("test"),
             conversions: vec![
                 Conversion {
@@ -395,6 +390,5 @@ mod tests {
         };
         let expected = vec![98..100, 37..39];
         assert_eq!(chart.map_range_to_ranges(50..54), expected);
-
     }
 }

@@ -1,7 +1,6 @@
 use std::ops::Range;
 
 use super::input;
-use super::part1::map_seed_to_location;
 
 /// # --- Part Two ---
 /// Everyone will starve if you only plant such a small number of seeds. Re-reading the almanac, it looks like the seeds: line actually describes ranges of seed numbers.
@@ -27,25 +26,34 @@ pub fn solve(input: &str) {
     let answer = new_seeds
         .iter()
         .map(|seed_range| {
-            seed_range
-                .clone()
-                .map(|seed| map_seed_to_location(&seed, &charts))
-                .min()
-                .unwrap()
-        })
-        .min()
-        .unwrap();
+            map_seed_range_to_location(seed_range.clone(), &charts)
+        }).min().unwrap();
 
     println!("Minimum location of all seed ranges: {}", answer);
 }
 
-fn map_seed_to_location(seed_range: Range<u64>, charts: &Vec<input::ConversionChart>) -> u64 {
+fn map_seed_range_to_location(seed_range: Range<u64>, charts: &Vec<input::ConversionChart>) -> u64 {
     let mut ranges = vec![seed_range];
-    // passes all the ranges through the levels of the conversion charts
+    let mut next_ranges = vec![];
+
+    // passes all the ranges through the each chart
     for chart in charts {
-        let ranges = chart.map_range_to_ranges(&location);
+        
+        for range in ranges.iter() {
+            let converted_ranges = chart.map_range_to_ranges(range.clone());
+            next_ranges.extend(converted_ranges);
+        }
+
+        ranges = next_ranges;
+        next_ranges = vec![];
     }
-    location
+
+    // find the minimum value in the ranges
+    ranges
+        .iter()
+        .map(|range| range.start)
+        .min()
+        .unwrap()
 }
 
 // converts a vector of seeds into a vector of ranges
