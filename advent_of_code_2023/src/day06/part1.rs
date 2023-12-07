@@ -64,6 +64,31 @@ pub fn calculate_ways_to_win(race: &input::Race) -> u128 {
     ways_to_win
 }
 
+// gets the number of holding times that would beat the record
+pub fn calculate_wins_by_roots(race: &input::Race) -> u32 {
+    let a = -1.0;
+    let b = race.duration as f64;
+    let c = -1.0 * (race.record_distance as f64);
+
+    let discriminant = b * b - 4.0 * a * c;
+
+    if discriminant < 0.0 {
+        // No real roots
+        0.0 as u32
+    } else {
+        let sqrt_discriminant = discriminant.sqrt();
+        let mut root1 = (-b + sqrt_discriminant) / (2.0 * a);
+        let mut root2 = (-b - sqrt_discriminant) / (2.0 * a);
+
+        // round up and down to get the number of whole numbers between the roots
+        root1 = (root1 + 1.0).floor();
+        root2 = (root2 - 1.0).ceil();
+
+        // include + 1 because this is inclusive range of possible options
+        (root1 - root2).abs() as u32 + 1
+    }
+}
+
 fn calculate_boat_distance(race_time: u64, hold_time: u64) -> u64 {
     if hold_time >= race_time {
         return 0;
@@ -73,6 +98,7 @@ fn calculate_boat_distance(race_time: u64, hold_time: u64) -> u64 {
         return hold_time * (race_time - hold_time);
     }
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -113,5 +139,30 @@ mod tests {
         };
 
         assert_eq!(calculate_ways_to_win(&race), 9);
+    }
+
+    #[test]
+    fn test_calculate_wins_by_roots() {
+
+        let race = input::Race {
+            duration: 7,
+            record_distance: 9,
+        };
+
+        assert_eq!(calculate_wins_by_roots(&race), 4);
+
+        let race = input::Race {
+            duration: 15,
+            record_distance: 40,
+        };
+
+        assert_eq!(calculate_wins_by_roots(&race), 8);
+
+        let race = input::Race {
+            duration: 30,
+            record_distance: 200,
+        };
+
+        assert_eq!(calculate_wins_by_roots(&race), 9);
     }
 }

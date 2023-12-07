@@ -1,5 +1,6 @@
 use super::input;
-use super::part1::calculate_ways_to_win;
+use super::part1::{calculate_ways_to_win, calculate_wins_by_roots};
+use std::time::Instant;
 
 
 /// # --- Part Two ---
@@ -19,7 +20,15 @@ use super::part1::calculate_ways_to_win;
 pub fn solve(input: &str) {
     let race = input::read_race_part_2(input);
 
+    let start = Instant::now();
     let answer = calculate_ways_to_win(&race);
+    let duration = start.elapsed();
+    let start = Instant::now();
+    let answer2 = calculate_wins_by_roots(&race);
+    let duration2 = start.elapsed();
 
     println!("Ways to win: {}", answer);
+    println!("Ways to win by roots: {}", answer2);
+    println!("Time to calculate ways to win: {:?}", duration);
+    println!("Time to calculate ways to win by roots: {:?}", duration2);
 }
