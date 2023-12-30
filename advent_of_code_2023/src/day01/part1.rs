@@ -21,8 +21,6 @@
 /// In this example, the calibration values of these four lines are 12, 38, 15, and 77. Adding these together produces 142.
 ///
 /// Consider your entire calibration document. What is the sum of all of the calibration values?
-///
-/// You can also [Share] this puzzle.
 pub fn solve(input: &str) {
     // iterate over each line and get the two digits in the string
     let ans: u32 = input

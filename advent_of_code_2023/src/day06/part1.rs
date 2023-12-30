@@ -47,7 +47,10 @@ pub fn solve(input: &str) {
     let races = input::read_races(input);
 
     // calcuate the ways to win for each race, then mutipley
-    let answer = races.iter().map(|race| calculate_ways_to_win(race)).product::<u128>();
+    let answer = races
+        .iter()
+        .map(|race| calculate_ways_to_win(race))
+        .product::<u128>();
 
     println!("Multiplied ways to win: {}", answer);
 }
@@ -99,7 +102,6 @@ fn calculate_boat_distance(race_time: u64, hold_time: u64) -> u64 {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
 
@@ -143,7 +145,6 @@ mod tests {
 
     #[test]
     fn test_calculate_wins_by_roots() {
-
         let race = input::Race {
             duration: 7,
             record_distance: 9,

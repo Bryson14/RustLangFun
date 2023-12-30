@@ -26,9 +26,10 @@ pub fn get_input(day: &str) -> String {
     }
 
     let input_path = Path::new("input").join(format!("day{}.txt", day));
-    let absolute_path = input_path
-        .canonicalize()
-        .expect("Unable to get absolute path");
+    let absolute_path = input_path.canonicalize().expect(&format!(
+        "Unable to get absolute path of {}",
+        input_path.display()
+    ));
 
     read_file(&absolute_path)
 }
@@ -48,9 +49,10 @@ pub fn get_example(day: &str, part: &str) -> (String, String) {
     }
 
     let input_path = Path::new("input").join(format!("day{}_{}_example.txt", day, part));
-    let absolute_path = input_path
-        .canonicalize()
-        .expect("Unable to get absolute path");
+    let absolute_path = input_path.canonicalize().expect(&format!(
+        "Unable to get absolute path of {}",
+        input_path.display()
+    ));
     let input = read_file(&absolute_path);
 
     let answer_path = Path::new("input").join(format!("day{}_{}_example_answer.txt", day, part));

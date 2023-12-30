@@ -129,7 +129,7 @@ impl Conversion {
 /// 50 98 2
 /// 52 50 48
 /// ```
-/// turns into ( [79,14,55,13], ConversionChart { name: "seed-to-soil", sourceStart: 50, destinationStart: 98, rangeLength: 2 } )
+/// turns into ( `[79,14,55,13]`, ConversionChart { name: "seed-to-soil", sourceStart: 50, destinationStart: 98, rangeLength: 2 } )
 pub fn read_input(input: &str) -> (Vec<u64>, Vec<ConversionChart>) {
     let mut seeds: Vec<u64> = Vec::new();
     let mut charts: Vec<ConversionChart> = Vec::new();

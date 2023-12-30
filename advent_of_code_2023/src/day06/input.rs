@@ -41,9 +41,10 @@ pub fn read_races(input: &str) -> Vec<Race> {
 /// turns into
 /// Race{71530, 940200}
 pub fn read_race_part_2(input: &str) -> Race {
-    let lines: Vec<String> = input.lines().map(|line| {
-        line.chars().filter(|c| c.is_ascii_digit()).collect()
-    }).collect();
+    let lines: Vec<String> = input
+        .lines()
+        .map(|line| line.chars().filter(|c| c.is_ascii_digit()).collect())
+        .collect();
 
     assert!(lines.len() == 2, "Expected 2 lines, got {}", lines.len());
 

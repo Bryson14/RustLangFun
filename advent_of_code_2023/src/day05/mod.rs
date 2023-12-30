@@ -32,6 +32,7 @@ pub fn run(part: Option<u32>, test_mode: bool) {
         }
         Some(2) => {
             println!("Running Part 2");
+            println!("Not Finished");
             part2::solve(&input_data);
         }
         _ => {
