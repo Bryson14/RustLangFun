@@ -50,7 +50,7 @@ pub fn run(part: Option<u32>, test_mode: bool) {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq)]
 pub enum Pipe {
     Vertical,
     Horizontal,
